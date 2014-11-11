@@ -64,12 +64,14 @@ public:
 	virtual ~pointCloud();
 
 	void cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input);
-	void readFile();
+	void readFile(const std::string& path);//, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud
 
 private:
 	//pcl::PointCloud<pcl::PointXYZ> cloud;
 
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
+	pcl::PointCloud<pcl::PointXYZ> cloud;
+	  pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr;
+
 };
 
 #endif /* MAFILIPP_OBJECT_RECOGNITION_SRC_POINTCLOUD_H_ */

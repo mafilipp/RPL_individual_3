@@ -44,6 +44,7 @@
 
 #include <string>
 #include "pointCloud.h"
+#include "DataBaseDescriptors.h"
 
 
 // A handy typedef.
@@ -136,7 +137,7 @@ void computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::SpinImageEstima
 
 
 
-void clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+void clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::vector< pcl::PointCloud<pcl::PointXYZ> > & cloud_cluster_vector)
 {
 	// Read in the cloud data
 	//	  pcl::PCDReader reader;
@@ -206,6 +207,9 @@ void clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 	ec.extract (cluster_indices);
 
 	// Mie modifiche
+//	std::vector< pcl::PointCloud<pcl::PointXYZ> > cloud_cluster_vector;
+
+
 	int j = 0;
 	for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
 	{
@@ -215,6 +219,9 @@ void clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 		cloud_cluster->width = cloud_cluster->points.size ();
 		cloud_cluster->height = 1;
 		cloud_cluster->is_dense = true;
+
+		// Store the cloud in the vector
+		cloud_cluster_vector.push_back(*cloud_cluster);
 
 		// Solo per salvare l'immagine
 		std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
@@ -228,33 +235,11 @@ void clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/////////////////
-
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "object_recognition");
+
+  // Define Publisher and Subscribers
   ros::NodeHandle n;
   // Subscribers
   ros::Subscriber file_sub   = n.subscribe<PointCloud>("points2", 1, pointsCallback);
@@ -263,33 +248,50 @@ int main(int argc, char** argv)
   ros::Publisher pub = n.advertise<PointCloud> ("points2", 1);
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
 
-  ros::Rate r(1);
-  pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> si;
+  // Path where to find the file
+  std::string path = "/home/mafilipp/Desktop/table_scene_lms400.pcd";
+//  std::string path = "/home/mafilipp/data/objects/duck/duck_close_90.pcd";
 
 
+//  pointCloud *pointCloudPtr = new pointCloud;
+//
+//
+//  readFile(path, pointCloudPtr);
+  pointCloud ciao;
+//  ciao.cloudPtr (new pcl::PointCloud<pcl::PointXYZ>);
 
+  ROS_INFO("point cloud object");
 
-
-
-
-
-
+  // Define the point cloud coming either from a file or an image
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
 
+  // Define Spin image
+  pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> si;
 
-  std::string path = "/home/mafilipp/data/objects/duck/duck_close_90.pcd"; //"/home/mafilipp/Desktop/table_scene_lms400.pcd";
-
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloudone (new pcl::PointCloud<pcl::PointXYZ>);
-
-  ROS_INFO("start read");
-
+  // Read from a file the point cloud, and store it in cloud
   readFile(path, cloud);
 
-  std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloud_cluster;// (new pcl::PointCloud<pcl::PointXYZ>);
+  // Divide the image into clusters
+  std::vector< pcl::PointCloud<pcl::PointXYZ> > cloud_cluster;
+
+  clusterExtraction(cloud, cloud_cluster);
+
+  ROS_INFO("After cloustering");
+
+
+//  std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloud_cluster;// (new pcl::PointCloud<pcl::PointXYZ>);
 //  cloud_cluster.push_back(new pcl::PointCloud<pcl::PointXYZ>);   ??????????
 
-//  clusterExtraction(cloud);
 
+
+  // Compute all the descriptors for the different clusters
+  for(std::vector< pcl::PointCloud<pcl::PointXYZ> >::iterator it = cloud_cluster.begin(); it != cloud_cluster.end(); ++it)
+  {
+//	  computeSpin(it -> points, si);
+  }
+
+
+  ROS_INFO("Before computing spin");
   computeSpin(cloud, si);
   ROS_INFO("start read -");
 
@@ -305,9 +307,6 @@ int main(int argc, char** argv)
   msg->points.push_back (pcl::PointXYZ(1.0, 2.0, 3.0));
 
   ros::Rate loop_rate(1);
-
-
-
 
   while (n.ok())
   {
@@ -396,24 +395,16 @@ visualization_msgs::Marker sendMarker(float x, float y, float z)
 
 void readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 {
-	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-
 	if (pcl::io::loadPCDFile<pcl::PointXYZ> (path, *cloud) == -1) //* load the file
 	{
 //		std::string error = "Couldn't read file" + path +  "\n";
 //		PCL_ERROR (error);
 	PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
-//	return (-1);
 	}
 	std::cout << "Loaded "
 			<< cloud->width * cloud->height
 			<< " data points from test_pcd.pcd with the following fields: "
 			<< std::endl;
-//	for (size_t i = 0; i < cloud->points.size (); ++i)
-//	std::cout << "    " << cloud->points[i].x
-//			  << " "    << cloud->points[i].y
-//			  << " "    << cloud->points[i].z << std::endl;
-//	return (0);
 }
 
 
