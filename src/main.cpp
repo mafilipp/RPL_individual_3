@@ -330,20 +330,6 @@ int main(int argc, char** argv)
 
 
 
-//  .push_back(new pcl::PointCloud<pcl::PointXYZ>)
-//  /* bar.h */
-//  class bar{
-//      /* standard stuff omitted */
-//      std::vector<my_obj*> foo;
-//  };
-//
-//  /* bar.cpp */
-//  bar::bar(){
-//      // foo = new std::vector<my_obj*>(); <-- why don't I need this line??
-//      foo.push_back(new my_obj());
-//  }
-
-  //
 //  pointCloud pc;
 //  pc.readFile();
 //  ROS_INFO("finish read");
