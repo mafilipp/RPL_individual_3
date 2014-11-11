@@ -55,6 +55,8 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 //======================= roba che non serve al momento
 visualization_msgs::Marker sendMarker(float x, float y, float z);
+void readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+
 //======================================================
 
 
@@ -96,29 +98,6 @@ void cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input)
 
 
 
-void readFile(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
-{
-	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-
-	if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/mafilipp/data/objects/duck/duck_close_0.pcd", *cloud) == -1) //* load the file
-	{
-	PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
-//	return (-1);
-	}
-	std::cout << "Loaded "
-			<< cloud->width * cloud->height
-			<< " data points from test_pcd.pcd with the following fields: "
-			<< std::endl;
-	for (size_t i = 0; i < cloud->points.size (); ++i)
-	std::cout << "    " << cloud->points[i].x
-			  << " "    << cloud->points[i].y
-			  << " "    << cloud->points[i].z << std::endl;
-
-//	return (0);
-}
-
-
-
 
 void computeSpin(pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> &si)
 {
@@ -130,7 +109,7 @@ void computeSpin(pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage>
 	pcl::PointCloud<SpinImage>::Ptr descriptors(new pcl::PointCloud<SpinImage>());
 
 	// Read a PCD file from disk.
-	readFile(cloud);
+	// -- readFile(cloud);
 //	if (pcl::io::loadPCDFile<pcl::PointXYZ>(argv[1], *cloud) != 0)
 //	{
 //		return -1;
@@ -165,13 +144,41 @@ void computeSpin(pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage>
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void clusterExtraction()
 {
 	// Read in the cloud data
 	pcl::PCDReader reader;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>), cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
 	//reader.read ("table_scene_lms400.pcd", *cloud);
-	readFile(cloud);
+	// -- readFile(cloud);
 	std::cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << std::endl; //*
 
 	// Create the filtering object: downsample the dataset using a leaf size of 1cm
@@ -252,6 +259,32 @@ void clusterExtraction()
 		j++;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /////////////////
 
 int main(int argc, char** argv)
@@ -268,13 +301,29 @@ int main(int argc, char** argv)
   ros::Rate r(1);
   pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> si;
 
-  ROS_INFO("start read");
-  //readFile();
-  computeSpin(si);
-  ROS_INFO("start read --");
 
-  clusterExtraction();
-  ROS_INFO("finish read");
+
+
+
+
+
+
+
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+
+
+  std::string path = "/home/mafilipp/data/objects/duck/duck_close_0.pcd";
+  readFile(path, cloud);
+
+  ROS_INFO("start read");
+
+  //computeSpin(si);
+  ROS_INFO("start read -");
+
+  //clusterExtraction();
+//  pointCloud pc;
+//  pc.readFile();
+//  ROS_INFO("finish read");
 
   PointCloud::Ptr msg (new PointCloud);
   msg->header.frame_id = "some_tf_frame";
@@ -369,5 +418,26 @@ visualization_msgs::Marker sendMarker(float x, float y, float z)
 
 }
 
+
+
+void readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+{
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+
+	if (pcl::io::loadPCDFile<pcl::PointXYZ> (path, *cloud) == -1) //* load the file
+	{
+	PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
+//	return (-1);
+	}
+	std::cout << "Loaded "
+			<< cloud->width * cloud->height
+			<< " data points from test_pcd.pcd with the following fields: "
+			<< std::endl;
+	for (size_t i = 0; i < cloud->points.size (); ++i)
+	std::cout << "    " << cloud->points[i].x
+			  << " "    << cloud->points[i].y
+			  << " "    << cloud->points[i].z << std::endl;
+//	return (0);
+}
 
 
