@@ -172,11 +172,11 @@ void computeSpin(pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage>
 
 
 
-void clusterExtraction()
+void clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 {
 	// Read in the cloud data
 	  pcl::PCDReader reader;
-	  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>), cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
+	  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
 	  reader.read ("/home/mafilipp/Desktop/table_scene_lms400.pcd", *cloud);
 	  std::cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << std::endl; //*
 
@@ -313,11 +313,13 @@ int main(int argc, char** argv)
 
   std::string path = "/home/mafilipp/data/objects/duck/duck_close_90.pcd";
 
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloudone (new pcl::PointCloud<pcl::PointXYZ>);
+
   ROS_INFO("start read");
 
   //readFile(path, cloud);
 
-  clusterExtraction();
+  clusterExtraction(cloudone);
 
   //computeSpin(si);
   ROS_INFO("start read -");
