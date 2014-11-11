@@ -45,6 +45,7 @@
 #include <string>
 #include "pointCloud.h"
 
+
 // A handy typedef.
 typedef pcl::Histogram<153> SpinImage;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
@@ -101,42 +102,35 @@ void cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input)
 
 void computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> &si)
 {
-	// Object for storing the point cloud.
-//	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-	// Object for storing the normals.
-	pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
-	// Object for storing the spin image for each point.
-	pcl::PointCloud<SpinImage>::Ptr descriptors(new pcl::PointCloud<SpinImage>());
 
-	// Read a PCD file from disk.
-	// -- readFile(cloud);
-//	if (pcl::io::loadPCDFile<pcl::PointXYZ>(argv[1], *cloud) != 0)
-//	{
-//		return -1;
-//	}
+	// Compute the normals
+	pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normal_estimation;
+	normal_estimation.setInputCloud (cloud);
 
-	// Note: you would usually perform downsampling now. It has been omitted here
-	// for simplicity, but be aware that computation can take a long time.
+	pcl::search::KdTree<pcl::PointXYZ>::Ptr kdtree (new pcl::search::KdTree<pcl::PointXYZ>);
+	normal_estimation.setSearchMethod (kdtree);
 
-	// Estimate the normals.
-	pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
-	normalEstimation.setInputCloud(cloud);
-	normalEstimation.setRadiusSearch(0.03);
-	pcl::search::KdTree<pcl::PointXYZ>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZ>);
-	normalEstimation.setSearchMethod(kdtree);
-	normalEstimation.compute(*normals);
+	pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud< pcl::Normal>);
+	normal_estimation.setRadiusSearch (0.03);
+	normal_estimation.compute (*normals);
 
-	// Spin image estimation object.
-	//pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> si; --> GIVEN AS REFERENCE
-	si.setInputCloud(cloud);
-	si.setInputNormals(normals);
-	// Radius of the support cylinder.
-	si.setRadiusSearch(0.02);
-	// Set the resolution of the spin image (the number of bins along one dimension).
-	// Note: you must change the output histogram size to reflect this.
-	si.setImageWidth(8);
+	// Setup spin image computation
+	pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, pcl::Histogram<153> > spin_image_descriptor(8, 0.5, 16);
+	spin_image_descriptor.setInputCloud (cloud);
+	spin_image_descriptor.setInputNormals (normals);
 
-	si.compute(*descriptors);
+	// Use the same KdTree from the normal estimation
+	spin_image_descriptor.setSearchMethod (kdtree);
+	pcl::PointCloud<pcl::Histogram<153> >::Ptr spin_images (new pcl::PointCloud<pcl::Histogram<153> >);
+	spin_image_descriptor.setRadiusSearch (0.2);
+
+	// Actually compute the spin images
+	spin_image_descriptor.compute (*spin_images);
+	std::cout << "SI output points.size (): " << spin_images->points.size () << std::endl;
+
+	// Display and retrieve the spin image descriptor vector for the first point.
+	pcl::Histogram<153> first_descriptor = spin_images->points[0];
+	std::cout << first_descriptor << std::endl;
 }
 
 //////////////
@@ -312,7 +306,7 @@ int main(int argc, char** argv)
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
 
 
-  std::string path = "/home/mafilipp/Desktop/table_scene_lms400.pcd";//"/home/mafilipp/data/objects/duck/duck_close_90.pcd";
+  std::string path = "/home/mafilipp/data/objects/duck/duck_close_90.pcd"; //"/home/mafilipp/Desktop/table_scene_lms400.pcd";
 
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloudone (new pcl::PointCloud<pcl::PointXYZ>);
 
