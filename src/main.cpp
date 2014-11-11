@@ -42,6 +42,9 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
 
+
+#include "pointCloud.h"
+
 // A handy typedef.
 typedef pcl::Histogram<153> SpinImage;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
