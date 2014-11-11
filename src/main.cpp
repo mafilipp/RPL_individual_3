@@ -21,8 +21,25 @@
 #include <pcl/PCLPointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
 
+// Read File
 
+#include <pcl/point_types.h>
+
+// Spin image
+#include <pcl/features/normal_3d.h>
+#include <pcl/features/spin_image.h>
+
+// A handy typedef.
+typedef pcl::Histogram<153> SpinImage;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+
+
+
+
+
+//======================= roba che non serve al momento
+visualization_msgs::Marker sendMarker(float x, float y, float z);
+//======================================================
 
 
 void pointsCallback(const PointCloud::ConstPtr& msg)
@@ -59,6 +76,121 @@ void cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input)
 
 
 }
+
+
+
+
+void readFile(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+{
+	//pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+
+	if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/mafilipp/data/objects/duck/duck_close_0.pcd", *cloud) == -1) //* load the file
+	{
+	PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
+//	return (-1);
+	}
+	std::cout << "Loaded "
+			<< cloud->width * cloud->height
+			<< " data points from test_pcd.pcd with the following fields: "
+			<< std::endl;
+	for (size_t i = 0; i < cloud->points.size (); ++i)
+	std::cout << "    " << cloud->points[i].x
+			  << " "    << cloud->points[i].y
+			  << " "    << cloud->points[i].z << std::endl;
+
+//	return (0);
+}
+
+///
+
+
+void computeSpin(pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> &si)
+{
+	// Object for storing the point cloud.
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	// Object for storing the normals.
+	pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
+	// Object for storing the spin image for each point.
+	pcl::PointCloud<SpinImage>::Ptr descriptors(new pcl::PointCloud<SpinImage>());
+
+	// Read a PCD file from disk.
+	readFile(cloud);
+//	if (pcl::io::loadPCDFile<pcl::PointXYZ>(argv[1], *cloud) != 0)
+//	{
+//		return -1;
+//	}
+
+	// Note: you would usually perform downsampling now. It has been omitted here
+	// for simplicity, but be aware that computation can take a long time.
+
+	// Estimate the normals.
+	pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
+	normalEstimation.setInputCloud(cloud);
+	normalEstimation.setRadiusSearch(0.03);
+	pcl::search::KdTree<pcl::PointXYZ>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZ>);
+	normalEstimation.setSearchMethod(kdtree);
+	normalEstimation.compute(*normals);
+
+	// Spin image estimation object.
+	//pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> si; --> GIVEN AS REFERENCE
+	si.setInputCloud(cloud);
+	si.setInputNormals(normals);
+	// Radius of the support cylinder.
+	si.setRadiusSearch(0.02);
+	// Set the resolution of the spin image (the number of bins along one dimension).
+	// Note: you must change the output histogram size to reflect this.
+	si.setImageWidth(8);
+
+	si.compute(*descriptors);
+}
+///
+
+int main(int argc, char** argv)
+{
+  ros::init(argc, argv, "object_recognition");
+  ros::NodeHandle n;
+  // Subscribers
+  ros::Subscriber file_sub   = n.subscribe<PointCloud>("points2", 1, pointsCallback);
+  ros::Subscriber camera_sub = n.subscribe<sensor_msgs::PointCloud2>("/camera/depth_registered/points", 1, cameraCallback);
+  // Publishers
+  ros::Publisher pub = n.advertise<PointCloud> ("points2", 1);
+  ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
+
+  ros::Rate r(1);
+  pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> si;
+
+  ROS_INFO("start read");
+  //readFile();
+  computeSpin(si);
+  ROS_INFO("finish read");
+
+  PointCloud::Ptr msg (new PointCloud);
+  msg->header.frame_id = "some_tf_frame";
+  msg->height = msg->width = 1;
+  msg->points.push_back (pcl::PointXYZ(1.0, 2.0, 3.0));
+
+  ros::Rate loop_rate(1);
+
+
+
+
+  while (n.ok())
+  {
+	  ros::Time time_st = ros::Time::now ();
+	  msg->header.stamp = time_st.toNSec()/1e3;
+	  pub.publish (msg);
+	  ros::spinOnce ();
+	  loop_rate.sleep ();
+
+	  // Publish the marker
+	  marker_pub.publish(sendMarker(1.1f,1.1f,1.1f));
+
+  }
+}
+
+
+
+//==================================== Roba che al momento non serve
 
 visualization_msgs::Marker sendMarker(float x, float y, float z)
 {
@@ -124,41 +256,6 @@ visualization_msgs::Marker sendMarker(float x, float y, float z)
 	return marker;
 
 }
-
-int main(int argc, char** argv)
-{
-  ros::init(argc, argv, "object_recognition");
-  ros::NodeHandle n;
-  // Subscribers
-  ros::Subscriber file_sub   = n.subscribe<PointCloud>("points2", 1, pointsCallback);
-  ros::Subscriber camera_sub = n.subscribe<sensor_msgs::PointCloud2>("/camera/depth_registered/points", 1, cameraCallback);
-  // Publishers
-  ros::Publisher pub = n.advertise<PointCloud> ("points2", 1);
-  ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
-
-  ros::Rate r(1);
-
-  PointCloud::Ptr msg (new PointCloud);
-  msg->header.frame_id = "some_tf_frame";
-  msg->height = msg->width = 1;
-  msg->points.push_back (pcl::PointXYZ(1.0, 2.0, 3.0));
-
-  ros::Rate loop_rate(1);
-  while (n.ok())
-  {
-	  ros::Time time_st = ros::Time::now ();
-	  msg->header.stamp = time_st.toNSec()/1e3;
-	  pub.publish (msg);
-	  ros::spinOnce ();
-	  loop_rate.sleep ();
-
-	  // Publish the marker
-	  marker_pub.publish(sendMarker());
-
-  }
-}
-
-
 
 
 
