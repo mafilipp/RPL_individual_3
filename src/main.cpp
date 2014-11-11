@@ -115,7 +115,8 @@ void computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::SpinImageEstima
 	normal_estimation.compute (*normals);
 
 	// Setup spin image computation
-	pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, pcl::Histogram<153> > spin_image_descriptor(8, 0.5, 16);
+	pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> spin_image_descriptor(8, 0.5, 16);
+	// image_width, support_angle_cos, min_pts_neighb
 	spin_image_descriptor.setInputCloud (cloud);
 	spin_image_descriptor.setInputNormals (normals);
 
@@ -129,40 +130,9 @@ void computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::SpinImageEstima
 	std::cout << "SI output points.size (): " << spin_images->points.size () << std::endl;
 
 	// Display and retrieve the spin image descriptor vector for the first point.
-	pcl::Histogram<153> first_descriptor = spin_images->points[0];
+	SpinImage first_descriptor = spin_images->points[0];
 	std::cout << first_descriptor << std::endl;
 }
-
-//////////////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -235,6 +205,7 @@ void clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 	ec.setInputCloud (cloud_filtered);
 	ec.extract (cluster_indices);
 
+	// Mie modifiche
 	int j = 0;
 	for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
 	{
