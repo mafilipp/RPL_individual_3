@@ -175,9 +175,9 @@ void computeSpin(pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage>
 void clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 {
 	// Read in the cloud data
-	  pcl::PCDReader reader;
+//	  pcl::PCDReader reader;
 	  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
-	  reader.read ("/home/mafilipp/Desktop/table_scene_lms400.pcd", *cloud);
+//	  reader.read ("/home/mafilipp/Desktop/table_scene_lms400.pcd", *cloud);
 	  std::cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << std::endl; //*
 
 	  // Create the filtering object: downsample the dataset using a leaf size of 1cm
@@ -311,15 +311,15 @@ int main(int argc, char** argv)
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
 
 
-  std::string path = "/home/mafilipp/data/objects/duck/duck_close_90.pcd";
+  std::string path = "/home/mafilipp/Desktop/table_scene_lms400.pcd";//"/home/mafilipp/data/objects/duck/duck_close_90.pcd";
 
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloudone (new pcl::PointCloud<pcl::PointXYZ>);
 
   ROS_INFO("start read");
 
-  //readFile(path, cloud);
+  readFile(path, cloud);
 
-  clusterExtraction(cloudone);
+  clusterExtraction(cloud);
 
   //computeSpin(si);
   ROS_INFO("start read -");
@@ -441,10 +441,10 @@ void readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud
 			<< cloud->width * cloud->height
 			<< " data points from test_pcd.pcd with the following fields: "
 			<< std::endl;
-	for (size_t i = 0; i < cloud->points.size (); ++i)
-	std::cout << "    " << cloud->points[i].x
-			  << " "    << cloud->points[i].y
-			  << " "    << cloud->points[i].z << std::endl;
+//	for (size_t i = 0; i < cloud->points.size (); ++i)
+//	std::cout << "    " << cloud->points[i].x
+//			  << " "    << cloud->points[i].y
+//			  << " "    << cloud->points[i].z << std::endl;
 //	return (0);
 }
 
