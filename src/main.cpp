@@ -46,6 +46,8 @@
 #include "pointCloud.h"
 #include "DataBaseDescriptors.h"
 
+#include <boost/lexical_cast.hpp>
+
 
 // A handy typedef.
 typedef pcl::Histogram<153> SpinImage;
@@ -79,6 +81,7 @@ void cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input)
 //	printf ("\t(%f, %f, %f)\n", pt.x, pt.y, pt.z);
 
 
+	ROS_INFO("Start callback");
 	pcl::PCLPointCloud2 pcl_pc;
 
 //	  void toPCL(const sensor_msgs::Image &image, pcl::PCLImage &pcl_image)
@@ -90,9 +93,19 @@ void cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input)
 	pcl::fromPCLPointCloud2(pcl_pc, cloud);
 	//pcl::YOUR_PCL_FUNCTION(cloud,...);
 
-	printf ("Cloud: width = %d, height = %d\n", cloud.width, cloud.height);
-	BOOST_FOREACH (const pcl::PointXYZ& pt, cloud.points)
-	printf ("\t(%f, %f, %f)\n", pt.x, pt.y, pt.z);
+//	printf ("Cloud: width = %d, height = %d\n", cloud.width, cloud.height);
+//	BOOST_FOREACH (const pcl::PointXYZ& pt, cloud.points)
+//	printf ("\t(%f, %f, %f)\n", pt.x, pt.y, pt.z);
+
+	ROS_INFO("Start saving");
+
+	// Solo per salvare l'immagine
+//	pcl::PCDWriter writer;
+//	std::stringstream ss;
+//	ss << "paperaGiallaTest.pcd";
+//	writer.write<pcl::PointXYZ> (ss.str (), cloud, false); //*
+//	ROS_INFO("Image saved");
+
 
 
 }
@@ -258,6 +271,55 @@ int main(int argc, char** argv)
 //
 //  readFile(path, pointCloudPtr);
   pointCloud ciao;
+
+  // Read files from database
+  std::string path_dataBaseFolder = "/home/mafilipp/data/objects/";
+  DataBaseDescriptors dataBaseDescriptors(path_dataBaseFolder);
+  dataBaseDescriptors.calculateDataBaseDescriptors();
+//  std::vector<std::string> vectorDirectories;
+//  vectorDirectories = dataBaseDescriptors.open(path_dataBaseFolder);
+
+//
+//  stringstream nameFiles;
+//  // Define an array that contain all the file that are in the different folders
+//  std::vector<std::string> vectorFiles[vectorDirectories.size()];
+
+
+
+//  int i = 0;
+//  for (std::vector<string>::iterator it = vectorDirectories.begin() ; it != vectorDirectories.end(); ++it)
+//  {
+//	  std::string path_file = path_dataBaseFolder + *it;
+//	  nameFiles << *it;
+//	  vectorFiles[i] = dataBaseDescriptors.open(path_file);
+//
+//	  std::cout << i << ' ' << vectorDirectories[i] << ' ' << *it;
+//	  std::cout << '\n';
+//
+//	  for (std::vector<string>::iterator it2 = vectorFiles[i].begin() ; it2 != vectorFiles[i].end(); ++it2)
+//	  {
+//		  std::cout << ' ' << *it2;
+//			  std::cout << '\n';
+//
+//	  }
+//
+//	  i++;
+//
+////	  string name=ss.str();
+////	  std::vector<std::string> ss.str();
+////	  ss.str() = dataBaseDescriptors.open(path_new);
+//////	  string name="v"+lexical_cast<string>(4);
+//  }
+
+
+//  for (std::vector<string>::iterator it = ss.str().begin() ; it != ss.str().end(); ++it)
+//  {
+//	  std::cout << ' ' << *it;
+//	  std::cout << '\n';
+//  }
+
+
+
 //  ciao.cloudPtr (new pcl::PointCloud<pcl::PointXYZ>);
 
   ROS_INFO("point cloud object");

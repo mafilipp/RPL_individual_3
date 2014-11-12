@@ -11,12 +11,20 @@
 #include <vector>
 #include <string>
 
+using namespace std;
 
 class DataBaseDescriptors {
 public:
-	DataBaseDescriptors();
+	DataBaseDescriptors(std::string path_dataBaseFolder_a);
 	virtual ~DataBaseDescriptors();
-	std::vector<std::string> DataBaseDescriptors::open(std::string path = ".")
+//	std::vector<std::string> open(std::string path = ".");
+	std::vector<std::string> open(std::string path);
+	void calculateDataBaseDescriptors();
+
+private:
+	std::vector<std::string> vectorDirectories;
+	std::string path_dataBaseFolder;
+
 
 };
 
