@@ -59,8 +59,6 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 //======================= roba che non serve al momento
 visualization_msgs::Marker sendMarker(float x, float y, float z);
-void readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
-
 //======================================================
 
 
@@ -113,144 +111,10 @@ void cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input)
 
 
 
-
-void computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> &si)
-{
-
-	// Compute the normals
-	pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normal_estimation;
-	normal_estimation.setInputCloud (cloud);
-
-	pcl::search::KdTree<pcl::PointXYZ>::Ptr kdtree (new pcl::search::KdTree<pcl::PointXYZ>);
-	normal_estimation.setSearchMethod (kdtree);
-
-	pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud< pcl::Normal>);
-	normal_estimation.setRadiusSearch (0.03);
-	normal_estimation.compute (*normals);
-
-	// Setup spin image computation
-	pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> spin_image_descriptor(8, 0.5, 16);
-	// image_width, support_angle_cos, min_pts_neighb
-	spin_image_descriptor.setInputCloud (cloud);
-	spin_image_descriptor.setInputNormals (normals);
-
-	// Use the same KdTree from the normal estimation
-	spin_image_descriptor.setSearchMethod (kdtree);
-	pcl::PointCloud<pcl::Histogram<153> >::Ptr spin_images (new pcl::PointCloud<pcl::Histogram<153> >);
-	spin_image_descriptor.setRadiusSearch (0.2);
-
-	// Actually compute the spin images
-	spin_image_descriptor.compute (*spin_images);
-	std::cout << "SI output points.size (): " << spin_images->points.size () << std::endl;
-
-	// Display and retrieve the spin image descriptor vector for the first point.
-	SpinImage first_descriptor = spin_images->points[0];
-	std::cout << first_descriptor << std::endl;
-}
-
-
-
-void clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::vector< pcl::PointCloud<pcl::PointXYZ> > & cloud_cluster_vector)
-{
-	// Read in the cloud data
-	//	  pcl::PCDReader reader;
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f (new pcl::PointCloud<pcl::PointXYZ>);
-	//	  reader.read ("/home/mafilipp/Desktop/table_scene_lms400.pcd", *cloud);
-	std::cout << "PointCloud before filtering has: " << cloud->points.size () << " data points." << std::endl; //*
-
-	// Create the filtering object: downsample the dataset using a leaf size of 1cm
-	pcl::VoxelGrid<pcl::PointXYZ> vg;
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
-	vg.setInputCloud (cloud);
-	vg.setLeafSize (0.01f, 0.01f, 0.01f);
-	vg.filter (*cloud_filtered);
-	std::cout << "PointCloud after filtering has: " << cloud_filtered->points.size ()  << " data points." << std::endl; //*
-
-	// Create the segmentation object for the planar model and set all the parameters
-	pcl::SACSegmentation<pcl::PointXYZ> seg;
-	pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
-	pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZ> ());
-	pcl::PCDWriter writer;
-	seg.setOptimizeCoefficients (true);
-	seg.setModelType (pcl::SACMODEL_PLANE);
-	seg.setMethodType (pcl::SAC_RANSAC);
-	seg.setMaxIterations (100);
-	seg.setDistanceThreshold (0.02);
-
-	int i=0, nr_points = (int) cloud_filtered->points.size ();
-	while (cloud_filtered->points.size () > 0.3 * nr_points)
-	{
-		// Segment the largest planar component from the remaining cloud
-		seg.setInputCloud (cloud_filtered);
-		seg.segment (*inliers, *coefficients);
-		if (inliers->indices.size () == 0)
-		{
-			std::cout << "Could not estimate a planar model for the given dataset." << std::endl;
-			break;
-		}
-
-		// Extract the planar inliers from the input cloud
-		pcl::ExtractIndices<pcl::PointXYZ> extract;
-		extract.setInputCloud (cloud_filtered);
-		extract.setIndices (inliers);
-		extract.setNegative (false);
-
-		// Get the points associated with the planar surface
-		extract.filter (*cloud_plane);
-		std::cout << "PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
-
-		// Remove the planar inliers, extract the rest
-		extract.setNegative (true);
-		extract.filter (*cloud_f);
-		*cloud_filtered = *cloud_f;
-	}
-
-	// Creating the KdTree object for the search method of the extraction
-	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
-	tree->setInputCloud (cloud_filtered);
-
-	std::vector<pcl::PointIndices> cluster_indices;
-	pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-	ec.setClusterTolerance (0.02); // 2cm
-	ec.setMinClusterSize (100);
-	ec.setMaxClusterSize (25000);
-	ec.setSearchMethod (tree);
-	ec.setInputCloud (cloud_filtered);
-	ec.extract (cluster_indices);
-
-	// Mie modifiche
-//	std::vector< pcl::PointCloud<pcl::PointXYZ> > cloud_cluster_vector;
-
-
-	int j = 0;
-	for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
-	{
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
-		for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
-			cloud_cluster->points.push_back (cloud_filtered->points[*pit]); //*
-		cloud_cluster->width = cloud_cluster->points.size ();
-		cloud_cluster->height = 1;
-		cloud_cluster->is_dense = true;
-
-		// Store the cloud in the vector
-		cloud_cluster_vector.push_back(*cloud_cluster);
-
-		// Solo per salvare l'immagine
-		std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
-		std::stringstream ss;
-		ss << "cloud_cluster_" << j << ".pcd";
-		writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false); //*
-		j++;
-	}
-}
-
-
-
-
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "object_recognition");
+
 
   // Define Publisher and Subscribers
   ros::NodeHandle n;
@@ -261,68 +125,20 @@ int main(int argc, char** argv)
   ros::Publisher pub = n.advertise<PointCloud> ("points2", 1);
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
 
-  // Path where to find the file
+
+  // Path where to find the file to analize
   std::string path = "/home/mafilipp/Desktop/table_scene_lms400.pcd";
 //  std::string path = "/home/mafilipp/data/objects/duck/duck_close_90.pcd";
 
 
-//  pointCloud *pointCloudPtr = new pointCloud;
-//
-//
-//  readFile(path, pointCloudPtr);
-  pointCloud ciao;
-
-  // Read files from database
+  // Read files from database and create a database descriptor
   std::string path_dataBaseFolder = "/home/mafilipp/data/objects/";
   DataBaseDescriptors dataBaseDescriptors(path_dataBaseFolder);
   dataBaseDescriptors.calculateDataBaseDescriptors();
-//  std::vector<std::string> vectorDirectories;
-//  vectorDirectories = dataBaseDescriptors.open(path_dataBaseFolder);
-
-//
-//  stringstream nameFiles;
-//  // Define an array that contain all the file that are in the different folders
-//  std::vector<std::string> vectorFiles[vectorDirectories.size()];
 
 
-
-//  int i = 0;
-//  for (std::vector<string>::iterator it = vectorDirectories.begin() ; it != vectorDirectories.end(); ++it)
-//  {
-//	  std::string path_file = path_dataBaseFolder + *it;
-//	  nameFiles << *it;
-//	  vectorFiles[i] = dataBaseDescriptors.open(path_file);
-//
-//	  std::cout << i << ' ' << vectorDirectories[i] << ' ' << *it;
-//	  std::cout << '\n';
-//
-//	  for (std::vector<string>::iterator it2 = vectorFiles[i].begin() ; it2 != vectorFiles[i].end(); ++it2)
-//	  {
-//		  std::cout << ' ' << *it2;
-//			  std::cout << '\n';
-//
-//	  }
-//
-//	  i++;
-//
-////	  string name=ss.str();
-////	  std::vector<std::string> ss.str();
-////	  ss.str() = dataBaseDescriptors.open(path_new);
-//////	  string name="v"+lexical_cast<string>(4);
-//  }
-
-
-//  for (std::vector<string>::iterator it = ss.str().begin() ; it != ss.str().end(); ++it)
-//  {
-//	  std::cout << ' ' << *it;
-//	  std::cout << '\n';
-//  }
-
-
-
-//  ciao.cloudPtr (new pcl::PointCloud<pcl::PointXYZ>);
-
-  ROS_INFO("point cloud object");
+  // create a point cloud element -> This contain all the operation that we have to perform
+  pointCloud pointCloud;
 
   // Define the point cloud coming either from a file or an image
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
@@ -331,14 +147,14 @@ int main(int argc, char** argv)
   pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> si;
 
   // Read from a file the point cloud, and store it in cloud
-  readFile(path, cloud);
+  pointCloud.readFile(path, cloud);
 
   // Divide the image into clusters
   std::vector< pcl::PointCloud<pcl::PointXYZ> > cloud_cluster;
 
-  clusterExtraction(cloud, cloud_cluster);
+  pointCloud.clusterExtraction(cloud, cloud_cluster);
 
-  ROS_INFO("After cloustering");
+
 
 
 //  std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloud_cluster;// (new pcl::PointCloud<pcl::PointXYZ>);
@@ -349,19 +165,16 @@ int main(int argc, char** argv)
   // Compute all the descriptors for the different clusters
   for(std::vector< pcl::PointCloud<pcl::PointXYZ> >::iterator it = cloud_cluster.begin(); it != cloud_cluster.end(); ++it)
   {
-//	  computeSpin(it -> points, si);
+//	  pointCloud.computeSpin(cloud, si);
   }
 
 
-  ROS_INFO("Before computing spin");
-  computeSpin(cloud, si);
   ROS_INFO("start read -");
 
 
+  // Compare the descriptor with the dataBaseDescriptors
+  //TODO
 
-//  pointCloud pc;
-//  pc.readFile();
-//  ROS_INFO("finish read");
 
   PointCloud::Ptr msg (new PointCloud);
   msg->header.frame_id = "some_tf_frame";
@@ -383,6 +196,40 @@ int main(int argc, char** argv)
 
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -451,22 +298,6 @@ visualization_msgs::Marker sendMarker(float x, float y, float z)
 
 	return marker;
 
-}
-
-
-
-void readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
-{
-	if (pcl::io::loadPCDFile<pcl::PointXYZ> (path, *cloud) == -1) //* load the file
-	{
-//		std::string error = "Couldn't read file" + path +  "\n";
-//		PCL_ERROR (error);
-	PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
-	}
-	std::cout << "Loaded "
-			<< cloud->width * cloud->height
-			<< " data points from test_pcd.pcd with the following fields: "
-			<< std::endl;
 }
 
 
