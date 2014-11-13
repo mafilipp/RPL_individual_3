@@ -66,7 +66,7 @@ public:
 	void cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input);
 	void readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);//, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud
 	void clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::vector< pcl::PointCloud<pcl::PointXYZ> > & cloud_cluster_vector);
-	void computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> &si);
+	void computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Histogram<153> >::Ptr spin_images);
 
 private:
 	//pcl::PointCloud<pcl::PointXYZ> cloud;

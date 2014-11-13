@@ -197,7 +197,7 @@ void pointCloud::clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, st
 }
 
 
-void pointCloud::computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> &si)
+void pointCloud::computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Histogram<153> >::Ptr spin_images)
 {
 
 	// Compute the normals
@@ -219,7 +219,7 @@ void pointCloud::computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::Spi
 
 	// Use the same KdTree from the normal estimation
 	spin_image_descriptor.setSearchMethod (kdtree);
-	pcl::PointCloud<pcl::Histogram<153> >::Ptr spin_images (new pcl::PointCloud<pcl::Histogram<153> >);
+//	pcl::PointCloud<pcl::Histogram<153> >::Ptr spin_images (new pcl::PointCloud<pcl::Histogram<153> >);
 	spin_image_descriptor.setRadiusSearch (0.2);
 
 	// Actually compute the spin images
@@ -229,5 +229,6 @@ void pointCloud::computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::Spi
 	// Display and retrieve the spin image descriptor vector for the first point.
 	SpinImage first_descriptor = spin_images->points[0];
 	std::cout << first_descriptor << std::endl;
+
 }
 

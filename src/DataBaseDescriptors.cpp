@@ -15,13 +15,29 @@
 
 using namespace std;
 
-DataBaseDescriptors::DataBaseDescriptors(std::string path_dataBaseFolder_a) {
-	// TODO Auto-generated constructor stub
+DataBaseDescriptors::DataBaseDescriptors(std::string path_dataBaseFolder_a)
+{
 	path_dataBaseFolder = path_dataBaseFolder_a;
 	vectorDirectories = open(path_dataBaseFolder);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1 (new pcl::PointCloud<pcl::PointXYZ>);
+//	vector<pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> > *dataBasePtr1 = new vector<pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> >(vectorDirectories.size());
+	pcl::PointCloud<pcl::Histogram<153> >::Ptr spin_images (new pcl::PointCloud<pcl::Histogram<153> >);
+	cloud = cloud1;
+	dataBaseDescriptorsPtr = spin_images;
+	//	std::vector<pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> > *dataBasePtr = new std::vector<pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> >(10);
+
 }
 
-DataBaseDescriptors::~DataBaseDescriptors() {
+
+//class Class
+//{
+//   int* array;
+//   Class(int x) : array(new int[x]) {};
+//};
+
+
+DataBaseDescriptors::~DataBaseDescriptors()
+{
 	// TODO Auto-generated destructor stub
 }
 
@@ -48,11 +64,6 @@ std::vector<std::string> DataBaseDescriptors::open(std::string path)
 void DataBaseDescriptors::calculateDataBaseDescriptors()
 {
 
-//	std::vector<std::string> vectorDirectories;
-//	std::string path_dataBaseFolder = "/home/mafilipp/data/objects/";
-
-//	vectorDirectories = open(path_dataBaseFolder);
-
 	// Define an array that contain all the file that are in the different folders
 	std::vector<std::string> vectorFiles[vectorDirectories.size()];
 
@@ -77,14 +88,25 @@ void DataBaseDescriptors::calculateDataBaseDescriptors()
 
 		for(std::vector<string>::iterator it = vectorFiles[j].begin(); it != vectorFiles[j].end(); ++it)
 		{
-			newPath = path_dataBaseFolder + vectorDirectories[j] + *it;
-			std::cout << ' ' << *it;
+			newPath = path_dataBaseFolder + vectorDirectories[j] + "/" + *it;
+			std::cout << "---" << *it;
 			std::cout << '\n';
 //			std::cout << newPath << "\n";
 
 			// In new path we have the path to come to the file *it
 			// We create the descriptor and push it back to the corresponding vector for the same object
 			//TODO
+
+			pointCloudDBD.readFile(newPath, cloud);
+			pointCloudDBD.computeSpin(cloud,dataBaseDescriptorsPtr);
+			for(int id = 0; id < dataBaseDescriptorsPtr->points.size(); id++)
+			{
+				dataBaseDescriptors.push_back(dataBaseDescriptorsPtr->points[id]);
+//				spin_images->points[0]
+			}
+
+			std::cout << endl << endl << dataBaseDescriptors.size() << std::endl <<  endl;
+
 
 			i++;
 		}
