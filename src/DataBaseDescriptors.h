@@ -79,7 +79,7 @@ private:
 	pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> si;
 	pcl::PointCloud<pcl::Histogram<153> >::Ptr dataBaseDescriptorsPtr;
 //	std::vector< pcl::PointCloud<pcl::Histogram<153> > > dataBaseDescriptors;
-	std::vector<SpinImage> dataBaseDescriptors;
+	std::vector<SpinImage> *dataBaseDescriptors;
 
 
 

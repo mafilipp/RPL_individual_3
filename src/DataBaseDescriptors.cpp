@@ -26,6 +26,11 @@ DataBaseDescriptors::DataBaseDescriptors(std::string path_dataBaseFolder_a)
 	dataBaseDescriptorsPtr = spin_images;
 	//	std::vector<pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> > *dataBasePtr = new std::vector<pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> >(10);
 
+	std::cout << vectorDirectories.size() << endl << endl << endl;
+	std::vector<SpinImage> * dataBaseDescriptror1 = new std::vector<SpinImage>[vectorDirectories.size()];
+	dataBaseDescriptors = dataBaseDescriptror1;
+//	*dataBaseDescriptors(std::vector<SpinImage> [5]);
+//	int * bigarray = new int[N];
 }
 
 
@@ -89,7 +94,7 @@ void DataBaseDescriptors::calculateDataBaseDescriptors()
 		for(std::vector<string>::iterator it = vectorFiles[j].begin(); it != vectorFiles[j].end(); ++it)
 		{
 			newPath = path_dataBaseFolder + vectorDirectories[j] + "/" + *it;
-			std::cout << "---" << *it;
+			std::cout << "--> " << *it;
 			std::cout << '\n';
 //			std::cout << newPath << "\n";
 
@@ -101,17 +106,27 @@ void DataBaseDescriptors::calculateDataBaseDescriptors()
 			pointCloudDBD.computeSpin(cloud,dataBaseDescriptorsPtr);
 			for(int id = 0; id < dataBaseDescriptorsPtr->points.size(); id++)
 			{
-				dataBaseDescriptors.push_back(dataBaseDescriptorsPtr->points[id]);
+				dataBaseDescriptors[j].push_back(dataBaseDescriptorsPtr->points[id]);
 //				spin_images->points[0]
 			}
 
-			std::cout << endl << endl << dataBaseDescriptors.size() << std::endl <<  endl;
-
+			std::cout << endl << endl << dataBaseDescriptors[j].size() << std::endl <<  endl;
 
 			i++;
 		}
 
 		std::cout << endl;
 	}
+
+	cout << "Created the dataBaseDescriptor containing all the descriptors for every object" << endl;
+
+	// todo: use this to compare all the descriptors
+//	  for (std::vector<SpinImage>::iterator it = dataBaseDescriptors[1].begin() ; it != dataBaseDescriptors[1].end(); ++it)
+//	  {
+//	    std::cout << ' ' << *it;
+//	  	  std::cout << '\n';
+//	  }
+
+
 
 }

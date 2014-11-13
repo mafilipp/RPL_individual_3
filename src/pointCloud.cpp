@@ -100,6 +100,8 @@ void pointCloud::readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ
 			<< std::endl;
 }
 
+////
+////
 
 void pointCloud::clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::vector< pcl::PointCloud<pcl::PointXYZ> > & cloud_cluster_vector)
 {
