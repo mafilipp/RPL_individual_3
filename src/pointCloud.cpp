@@ -50,6 +50,31 @@
 #include <pcl/segmentation/extract_clusters.h>
 
 
+// FindCorrespondance
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_cloud.h>
+#include <pcl/correspondence.h>
+#include <pcl/features/normal_3d_omp.h>
+#include <pcl/features/shot_omp.h>
+#include <pcl/features/board.h>
+#include <pcl/keypoints/uniform_sampling.h>
+#include <pcl/recognition/cg/hough_3d.h>
+#include <pcl/recognition/cg/geometric_consistency.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/kdtree/impl/kdtree_flann.hpp>
+#include <pcl/common/transforms.h>
+#include <pcl/console/parse.h>
+
+typedef pcl::PointXYZRGBA PointType;
+typedef pcl::Normal NormalType;
+typedef pcl::ReferenceFrame RFType;
+//typedef pcl::SHOT352 DescriptorType;
+typedef pcl::Histogram<153> SpinImage;
+
+typedef pcl::Histogram<153> DescriptorType;
+
+
 pointCloud::pointCloud() {
 	// TODO Auto-generated constructor stub
 //	cloudPtr (new pcl::PointCloud<pcl::PointXYZ>);
@@ -100,8 +125,6 @@ void pointCloud::readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ
 			<< std::endl;
 }
 
-////
-////
 
 void pointCloud::clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::vector< pcl::PointCloud<pcl::PointXYZ> > & cloud_cluster_vector)
 {
@@ -234,3 +257,74 @@ void pointCloud::computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::Poi
 
 }
 
+
+
+int pointCloud::findCorrespondence(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, pcl::PointCloud<DescriptorType>::Ptr scene_descriptors)
+{
+
+	// Per far andare il tutto
+//	  pcl::PointCloud<DescriptorType>::Ptr model_descriptors (new pcl::PointCloud<DescriptorType> ());
+//	  pcl::PointCloud<DescriptorType>::Ptr scene_descriptors (new pcl::PointCloud<DescriptorType> ());
+
+	//
+	  pcl::CorrespondencesPtr model_scene_corrs (new pcl::Correspondences ());
+
+	  pcl::KdTreeFLANN<DescriptorType> match_search;
+	  match_search.setInputCloud (model_descriptors);
+
+	  //  For each scene keypoint descriptor, find nearest neighbor into the model keypoints descriptor cloud and add it to the correspondences vector.
+	  for (size_t i = 0; i < scene_descriptors->size (); ++i)
+	  {
+	    std::vector<int> neigh_indices (1);
+	    std::vector<float> neigh_sqr_dists (1);
+//	    if (!pcl_isfinite (scene_descriptors->at (i).descriptor[0])) //skipping NaNs
+//	    {
+//	      continue;
+//	    }
+	    int found_neighs = match_search.nearestKSearch (scene_descriptors->at (i), 1, neigh_indices, neigh_sqr_dists);
+	    if(found_neighs == 1 && neigh_sqr_dists[0] < 0.25f) //  add match only if the squared descriptor distance is less than 0.25 (SHOT descriptor distances are between 0 and 1 by design)
+	    {
+	      pcl::Correspondence corr (neigh_indices[0], static_cast<int> (i), neigh_sqr_dists[0]);
+	      model_scene_corrs->push_back (corr);
+	    }
+	  }
+	  std::cout << "Correspondences found: " << model_scene_corrs->size () << std::endl;
+
+	  return model_scene_corrs->size ();
+}
+
+
+// Mia versione
+//int findCorrespondence(pcl::PointCloud<pcl::Histogram<153> >::Ptr spin_images_model, pcl::PointCloud<pcl::Histogram<153> >::Ptr spin_images_scene)
+//{
+//
+//	// Per far andare il tutto
+////	  pcl::PointCloud<DescriptorType>::Ptr model_descriptors (new pcl::PointCloud<DescriptorType> ());
+////	  pcl::PointCloud<DescriptorType>::Ptr scene_descriptors (new pcl::PointCloud<DescriptorType> ());
+//
+//	//
+//	  pcl::CorrespondencesPtr model_scene_corrs (new pcl::Correspondences ());
+//
+//	  pcl::KdTreeFLANN<pcl::Histogram<153> > match_search;
+//	  match_search.setInputCloud (spin_images_model);
+//
+//	  //  For each scene keypoint descriptor, find nearest neighbor into the model keypoints descriptor cloud and add it to the correspondences vector.
+//	  for (size_t i = 0; i < spin_images_scene->size (); ++i)
+//	  {
+//	    std::vector<int> neigh_indices (1);
+//	    std::vector<float> neigh_sqr_dists (1);
+//	    if (!pcl_isfinite (spin_images_scene->at (i).descriptor[0])) //skipping NaNs
+//	    {
+//	      continue;
+//	    }
+//	    int found_neighs = match_search.nearestKSearch (spin_images_scene->at (i), 1, neigh_indices, neigh_sqr_dists);
+//	    if(found_neighs == 1 && neigh_sqr_dists[0] < 0.25f) //  add match only if the squared descriptor distance is less than 0.25 (SHOT descriptor distances are between 0 and 1 by design)
+//	    {
+//	      pcl::Correspondence corr (neigh_indices[0], static_cast<int> (i), neigh_sqr_dists[0]);
+//	      model_scene_corrs->push_back (corr);
+//	    }
+//	  }
+//	  std::cout << "Correspondences found: " << model_scene_corrs->size () << std::endl;
+//
+//	  return model_scene_corrs->size ();
+//}

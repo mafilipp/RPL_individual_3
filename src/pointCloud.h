@@ -56,6 +56,8 @@
 // A handy typedef.
 typedef pcl::Histogram<153> SpinImage;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+typedef pcl::Histogram<153> DescriptorType;
+
 
 
 class pointCloud {
@@ -67,6 +69,9 @@ public:
 	void readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);//, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud
 	void clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::vector< pcl::PointCloud<pcl::PointXYZ> > & cloud_cluster_vector);
 	void computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Histogram<153> >::Ptr spin_images);
+	int findCorrespondence(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, pcl::PointCloud<DescriptorType>::Ptr scene_descriptors);
+
+
 
 private:
 	//pcl::PointCloud<pcl::PointXYZ> cloud;

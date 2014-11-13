@@ -100,17 +100,20 @@ void DataBaseDescriptors::calculateDataBaseDescriptors()
 
 			// In new path we have the path to come to the file *it
 			// We create the descriptor and push it back to the corresponding vector for the same object
-			//TODO
 
+			// First for each .pcl file, open the figure, computer the descriptors
 			pointCloudDBD.readFile(newPath, cloud);
 			pointCloudDBD.computeSpin(cloud,dataBaseDescriptorsPtr);
+
+			// Store it at the right position
 			for(int id = 0; id < dataBaseDescriptorsPtr->points.size(); id++)
 			{
 				dataBaseDescriptors[j].push_back(dataBaseDescriptorsPtr->points[id]);
 //				spin_images->points[0]
 			}
 
-			std::cout << endl << endl << dataBaseDescriptors[j].size() << std::endl <<  endl;
+			// DEBUGGING
+//			std::cout << endl << endl << dataBaseDescriptors[j].size() << std::endl <<  endl;
 
 			i++;
 		}
@@ -121,6 +124,7 @@ void DataBaseDescriptors::calculateDataBaseDescriptors()
 	cout << "Created the dataBaseDescriptor containing all the descriptors for every object" << endl;
 
 	// todo: use this to compare all the descriptors
+	// DEBUGGING
 //	  for (std::vector<SpinImage>::iterator it = dataBaseDescriptors[1].begin() ; it != dataBaseDescriptors[1].end(); ++it)
 //	  {
 //	    std::cout << ' ' << *it;
