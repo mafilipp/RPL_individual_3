@@ -48,10 +48,11 @@
 
 #include <boost/lexical_cast.hpp>
 
+#include "PointCloudH.h"
 
 // A handy typedef.
 typedef pcl::Histogram<153> SpinImage;
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+typedef pcl::PointCloud<pcl::PointXYZ> PointCloudTF;
 
 
 
@@ -62,66 +63,77 @@ visualization_msgs::Marker sendMarker(float x, float y, float z);
 //======================================================
 
 
-void pointsCallback(const PointCloud::ConstPtr& msg)
-{
-
-//	printf ("Cloud: width = %d, height = %d\n", msg->width, msg->height);
-//	BOOST_FOREACH (const pcl::PointXYZ& pt, msg->points)
-//	printf ("\t(%f, %f, %f)\n", pt.x, pt.y, pt.z);
-}
-
-void cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input)
-{
-	//TODO
-//	ROS_INFO("I got the camera");
-//	printf ("Cloud: width = %d, height = %d\n", msg->width, msg->height);
-//	BOOST_FOREACH (const pcl::PointXYZ& pt, msg->points)
-//	printf ("\t(%f, %f, %f)\n", pt.x, pt.y, pt.z);
-
-
-	ROS_INFO("Start callback");
-	pcl::PCLPointCloud2 pcl_pc;
-
-//	  void toPCL(const sensor_msgs::Image &image, pcl::PCLImage &pcl_image)
-
-	pcl_conversions::toPCL(*input, pcl_pc);
-
-	pcl::PointCloud<pcl::PointXYZ> cloud;
-
-	pcl::fromPCLPointCloud2(pcl_pc, cloud);
-	//pcl::YOUR_PCL_FUNCTION(cloud,...);
-
-//	printf ("Cloud: width = %d, height = %d\n", cloud.width, cloud.height);
-//	BOOST_FOREACH (const pcl::PointXYZ& pt, cloud.points)
-//	printf ("\t(%f, %f, %f)\n", pt.x, pt.y, pt.z);
-
-	ROS_INFO("Start saving");
-
-	// Solo per salvare l'immagine
-//	pcl::PCDWriter writer;
-//	std::stringstream ss;
-//	ss << "paperaGiallaTest.pcd";
-//	writer.write<pcl::PointXYZ> (ss.str (), cloud, false); //*
-//	ROS_INFO("Image saved");
-
-}
-
-
 
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "object_recognition");
 
+  // Create the Helper object
+  PointCloudH cloudH;
 
   // Define Publisher and Subscribers
   ros::NodeHandle n;
+
   // Subscribers
-  ros::Subscriber file_sub   = n.subscribe<PointCloud>("points2", 1, pointsCallback);
-  ros::Subscriber camera_sub = n.subscribe<sensor_msgs::PointCloud2>("/camera/depth_registered/points", 1, cameraCallback);
+  ros::Subscriber camera_sub = n.subscribe<sensor_msgs::PointCloud2>("/camera/depth_registered/points", 1, &PointCloudH::cameraCallback, &cloudH);
+
   // Publishers
-  ros::Publisher pub = n.advertise<PointCloud> ("points2", 1);
+  ros::Publisher pub = n.advertise<PointCloudTF> ("points2", 1);
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
+
+
+
+
+
+  ros::Rate loop_rate(1);
+  PointCloudTF::Ptr msg (new PointCloudTF);
+
+  while (n.ok())
+  {
+
+//	  ROS_INFO("heigh = 	%d", cloudH.getCloud().height);
+	  std::cout << std::endl << std::endl << "heigh -> " << cloudH.getCloud().height << std::endl;
+//	  msg->points.clear();
+	  msg->header.frame_id = "camera_link";
+//	  msg->height = 3;
+//	  msg->width = 1;
+//	  msg->points.push_back (pcl::PointXYZ(0.1, 0.1, 0.1));
+//	  msg->points.push_back (pcl::PointXYZ(0.2, 0.2, 0.2));
+//	  msg->points.push_back (pcl::PointXYZ(0.3, 0.2, 0.2));
+
+	  msg->height = cloudH.getCloud().height;
+	  msg->width = cloudH.getCloud().width;
+
+
+	  msg->points.clear();
+
+	  for(int i = 0; i < cloudH.getCloud().size(); i++)
+		  msg->points.push_back (cloudH.getCloud().points[i]);
+
+
+	  ros::Time time_st = ros::Time::now ();
+	  msg->header.stamp = time_st.toNSec()/1e3;
+	  ROS_INFO("Publishing");
+	  pub.publish (msg);
+
+	  ros::spinOnce ();
+	  loop_rate.sleep ();
+
+	  // Publish the marker
+	  marker_pub.publish(sendMarker(1.1f,1.1f,1.1f));
+
+  }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -206,25 +218,10 @@ int main(int argc, char** argv)
 
   /////======================= ALTRO
 
-  PointCloud::Ptr msg (new PointCloud);
-  msg->header.frame_id = "some_tf_frame";
-  msg->height = msg->width = 1;
-  msg->points.push_back (pcl::PointXYZ(1.0, 2.0, 3.0));
 
-  ros::Rate loop_rate(1);
 
-  while (n.ok())
-  {
-	  ros::Time time_st = ros::Time::now ();
-	  msg->header.stamp = time_st.toNSec()/1e3;
-	  pub.publish (msg);
-	  ros::spinOnce ();
-	  loop_rate.sleep ();
 
-	  // Publish the marker
-	  marker_pub.publish(sendMarker(1.1f,1.1f,1.1f));
 
-  }
 }
 
 
