@@ -104,8 +104,6 @@ void cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input)
 //	writer.write<pcl::PointXYZ> (ss.str (), cloud, false); //*
 //	ROS_INFO("Image saved");
 
-
-
 }
 
 
@@ -126,83 +124,85 @@ int main(int argc, char** argv)
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
 
 
-  // Path where to find the file to analize
-//  std::string path = "/home/mafilipp/Desktop/table_scene_lms400.pcd";
-//  std::string path = "/home/mafilipp/data/objects/duck/duck_close_90.pcd";
-  std::string path = "/home/mafilipp/catkin_ws/src/mafilipp/object_recognition/image/complete_image";
 
-
-  // Read files from database and create a database descriptor
-//  std::string path_dataBaseFolder = "/home/mafilipp/data/objects/";
-  std::string path_dataBaseFolder = "/home/mafilipp/catkin_ws/src/mafilipp/object_recognition/image/database_image";
-
-  DataBaseDescriptors dataBaseDescriptors(path_dataBaseFolder);
-  dataBaseDescriptors.calculateDataBaseDescriptors(); // Stored in dataBaseDescriptors.dataBaseDescriptors[i]
-
-  // create a point cloud element -> This contain all the operation that we have to perform
-  pointCloud pointCloud;
-
-  // Define the point cloud coming either from a file or an image
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-
-  // Define Spin image
-  pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage>::Ptr si;
-
-  // Read from a file the point cloud, and store it in cloud
-  pointCloud.readFile(path, cloud); // -> In cloud I have now the complete image
-
-  // Vector that contain all the clusters
-  std::vector <std::vector< pcl::PointCloud<pcl::PointXYZ> > >cloud_cluster_vector;
-
-  pointCloud.clusterExtraction(cloud, cloud_cluster_vector);
-
-  // To deletw!
-  std::vector< pcl::PointCloud<pcl::PointXYZ> > cloud_cluster;
-  pointCloud.clusterExtraction(cloud, cloud_cluster);
-
-
-//  std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloud_cluster;// (new pcl::PointCloud<pcl::PointXYZ>);
-//  cloud_cluster.push_back(new pcl::PointCloud<pcl::PointXYZ>);   ??????????
-
-
-  pcl::PointCloud<pcl::Histogram<153> >::Ptr spinImage;
-
-  pcl::PointCloud<DescriptorType>::Ptr scene_descriptors(new pcl::PointCloud<DescriptorType> [cloud_cluster.size()]);
-
-  // Compute all the descriptors for the different clusters
-  for(std::vector< pcl::PointCloud<pcl::PointXYZ> >::iterator it = cloud_cluster.begin(); it != cloud_cluster.end(); ++it)
-  {
-	  pointCloud.computeSpin(cloud,spinImage);
-  }
-
-
-  ROS_INFO("start read -");
-
-
-  // Vettori da usare
-  // Model
-//  dataBaseDescriptors.dataBaseDescriptors
-
-
-  // Find Correspondence
-  // Compare the descriptor with the dataBaseDescriptors
-  int match;
-//  for (int idDB = 0; idDB < ; idDB++)
+//  //===========================================
+//  // Path where to find the file to analize
+////  std::string path = "/home/mafilipp/Desktop/table_scene_lms400.pcd";
+////  std::string path = "/home/mafilipp/data/objects/duck/duck_close_90.pcd";
+//  std::string path = "/home/mafilipp/catkin_ws/src/mafilipp/object_recognition/image/complete_image";
 //
-//  for(std::vector< pcl::PointCloud<DescriptorType>::Ptr >::iterator itModel = cloud_cluster.begin(); itModel != cloud_cluster.end(); ++itModel)
+//
+//  // Read files from database and create a database descriptor
+////  std::string path_dataBaseFolder = "/home/mafilipp/data/objects/";
+//  std::string path_dataBaseFolder = "/home/mafilipp/catkin_ws/src/mafilipp/object_recognition/image/database_image";
+//
+//  DataBaseDescriptors dataBaseDescriptors(path_dataBaseFolder);
+//  dataBaseDescriptors.calculateDataBaseDescriptors(); // Stored in dataBaseDescriptors.dataBaseDescriptors[i]
+//
+//  // create a point cloud element -> This contain all the operation that we have to perform
+//  pointCloud pointCloud;
+//
+//  // Define the point cloud coming either from a file or an image
+//  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+//
+//  // Define Spin image
+//  pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage>::Ptr si;
+//
+//  // Read from a file the point cloud, and store it in cloud
+//  pointCloud.readFile(path, cloud); // -> In cloud I have now the complete image
+//
+//  // Vector that contain all the clusters
+//  std::vector <std::vector< pcl::PointCloud<pcl::PointXYZ> > >cloud_cluster_vector;
+//
+////  pointCloud.clusterExtraction(cloud, cloud_cluster_vector);
+//
+//  // To deletw!
+//  std::vector< pcl::PointCloud<pcl::PointXYZ> > cloud_cluster;
+//  pointCloud.clusterExtraction(cloud, cloud_cluster);
+//
+//
+////  std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloud_cluster;// (new pcl::PointCloud<pcl::PointXYZ>);
+////  cloud_cluster.push_back(new pcl::PointCloud<pcl::PointXYZ>);   ??????????
+//
+//
+//  pcl::PointCloud<pcl::Histogram<153> >::Ptr spinImage;
+//
+//  pcl::PointCloud<DescriptorType>::Ptr scene_descriptors(new pcl::PointCloud<DescriptorType> [cloud_cluster.size()]);
+//
+//  // Compute all the descriptors for the different clusters
+//  for(std::vector< pcl::PointCloud<pcl::PointXYZ> >::iterator it = cloud_cluster.begin(); it != cloud_cluster.end(); ++it)
 //  {
-//	  for(std::vector< pcl::PointCloud<DescriptorType>::Ptr >::iterator itDataBase = dataBaseDescriptors.dataBaseDescriptors[0].begin(); itDataBase != cloud_cluster.end(); ++itDataBase)
-//	  {
-//		  match = pointCloud.findCorrespondence(*itModel, *itDataBase);
-////		  match = pointCloud.findCorrespondence(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, pcl::PointCloud<DescriptorType>::Ptr scene_descriptors);
-//
-//	  }
-
-
+//	  pointCloud.computeSpin(cloud,spinImage);
 //  }
-
-
-
+//
+//
+//  ROS_INFO("start read -");
+//
+//
+//  // Vettori da usare
+//  // Model
+////  dataBaseDescriptors.dataBaseDescriptors
+//
+//
+//  // Find Correspondence
+//  // Compare the descriptor with the dataBaseDescriptors
+//  int match;
+////  for (int idDB = 0; idDB < ; idDB++)
+////
+////  for(std::vector< pcl::PointCloud<DescriptorType>::Ptr >::iterator itModel = cloud_cluster.begin(); itModel != cloud_cluster.end(); ++itModel)
+////  {
+////	  for(std::vector< pcl::PointCloud<DescriptorType>::Ptr >::iterator itDataBase = dataBaseDescriptors.dataBaseDescriptors[0].begin(); itDataBase != cloud_cluster.end(); ++itDataBase)
+////	  {
+////		  match = pointCloud.findCorrespondence(*itModel, *itDataBase);
+//////		  match = pointCloud.findCorrespondence(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, pcl::PointCloud<DescriptorType>::Ptr scene_descriptors);
+////
+////	  }
+//
+//
+////  }
+//
+//
+////===========================================
 
   /////======================= ALTRO
 
