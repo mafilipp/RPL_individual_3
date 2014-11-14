@@ -1,0 +1,15 @@
+<launch>
+
+  <arg name="pi" value="3.14159265"/>
+  <arg name="pi_2" value="1.57079633"/>
+
+  <node pkg="object_recognition" type="object_recognition" name="object_recognition" clear_params="true" output="screen"/>	
+    	<rosparam file="$(find object_recognition)/parameters.yaml"/>		
+
+
+
+
+  <node pkg="tf" type="static_transform_publisher" name="out_to_camera_link"
+    args="0 0 0 0 -$(arg pi_2) $(arg pi_2)  /camera_link_out /camera_link 100" />
+
+ </launch>

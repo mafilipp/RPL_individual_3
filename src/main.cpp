@@ -83,6 +83,37 @@ int main(int argc, char** argv)
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
 
 
+  //== Inizializza i valori a un valore default, ed eventualmente cambiali nel lounch
+
+//  // Fuori dal main
+//  struct PathPlannerNodeParameters {
+//    // the robots radius in [m]
+//    double        robot_footprint_radius;
+//    // lower bound for detecting obstacles
+//    int           obstacle_occupancy_value;
+//    // the value to which obstacles should be inflated to
+//    int           obstacle_inflation_value;
+//    // upper bound for free space
+//    int           obstacle_free_space_value;
+//    // connectivity of the graph i.e 4 vs. 8 connected
+//    int           graph_connectivity;
+//  };
+
+  int ciao = 100;
+  // Parameters
+  ros::NodeHandle n_paramters;
+
+  if (n_paramters.getParam("/a", ciao))
+  {
+    ROS_INFO("Funziona!!");
+  }
+
+
+  ROS_INFO_STREAM("-> Map resized to "); // Non cambia niente
+  ROS_ERROR("Sorry, could not find a path! Here are the points you requested:"); // scritta rossa
+  //==
+
+
 
 
 
@@ -95,7 +126,7 @@ int main(int argc, char** argv)
 //	  ROS_INFO("heigh = 	%d", cloudH.getCloud().height);
 	  std::cout << std::endl << std::endl << "heigh -> " << cloudH.getCloud().height << std::endl;
 //	  msg->points.clear();
-	  msg->header.frame_id = "camera_link";
+	  msg->header.frame_id = "camera_link_out";
 //	  msg->height = 3;
 //	  msg->width = 1;
 //	  msg->points.push_back (pcl::PointXYZ(0.1, 0.1, 0.1));
@@ -122,6 +153,9 @@ int main(int argc, char** argv)
 
 	  // Publish the marker
 	  marker_pub.publish(sendMarker(1.1f,1.1f,1.1f));
+
+
+	  std::cout << "ciao -->>>>>" << ciao << std::endl << std::endl;
 
   }
 

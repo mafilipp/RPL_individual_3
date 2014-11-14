@@ -72,13 +72,14 @@ typedef pcl::ReferenceFrame RFType;
 //typedef pcl::SHOT352 DescriptorType;
 typedef pcl::Histogram<153> SpinImage;
 
+
+
 typedef pcl::Histogram<153> DescriptorType;
 
 
 pointCloud::pointCloud() {
 	// TODO Auto-generated constructor stub
 //	cloudPtr (new pcl::PointCloud<pcl::PointXYZ>);
-
 
 }
 
@@ -88,27 +89,19 @@ pointCloud::~pointCloud() {
 
 void pointCloud::cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input)
 {
-	//TODO
-//	ROS_INFO("I got the camera");
-//	printf ("Cloud: width = %d, height = %d\n", msg->width, msg->height);
-//	BOOST_FOREACH (const pcl::PointXYZ& pt, msg->points)
-//	printf ("\t(%f, %f, %f)\n", pt.x, pt.y, pt.z);
 
+	ROS_INFO("Camera Callback");
 
 	pcl::PCLPointCloud2 pcl_pc;
 
-//	  void toPCL(const sensor_msgs::Image &image, pcl::PCLImage &pcl_image)
-
 	pcl_conversions::toPCL(*input, pcl_pc);
 
-	pcl::PointCloud<pcl::PointXYZ> cloud;
+//	pcl::fromPCLPointCloud2(pcl_pc, m_cloud);
 
-	pcl::fromPCLPointCloud2(pcl_pc, cloud);
-	//pcl::YOUR_PCL_FUNCTION(cloud,...);
+//		  ROS_INFO("cloudH.getCloud()[1].x = %n",m_cloud.points.size());
 
-	printf ("Cloud: width = %d, height = %d\n", cloud.width, cloud.height);
-	BOOST_FOREACH (const pcl::PointXYZ& pt, cloud.points)
-	printf ("\t(%f, %f, %f)\n", pt.x, pt.y, pt.z);
+	ROS_INFO("camera Callback finished");
+
 }
 
 void pointCloud::readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
