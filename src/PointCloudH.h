@@ -53,11 +53,19 @@ public:
 	virtual ~PointCloudH();
 
 	void cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input);
+	void savePclImage(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_image, std::string path_to_save_image, std::string name);
+
+
 	const pcl::PointCloud<pcl::PointXYZ>& getCloud() const;
 	void setCloud(const pcl::PointCloud<pcl::PointXYZ>& cloud);
+	bool isUpToDate() const;
+	void setUpToDate(bool upToDate);
 
 private:
+	pcl::PointCloud<pcl::PointXYZ>::Ptr m_cloudPtr;
 	pcl::PointCloud<pcl::PointXYZ> m_cloud;
+
+	bool m_upToDate;
 };
 
 #endif /* MAFILIPP_OBJECT_RECOGNITION_SRC_POINTCLOUDH_H_ */
