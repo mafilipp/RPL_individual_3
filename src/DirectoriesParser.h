@@ -18,6 +18,8 @@ public:
 	virtual ~DirectoriesParser();
 
 	std::vector<std::string> open(std::string path);
+	void removeAllFiles(std::string path);
+
 
 	// Getters and setters
 	const std::vector<std::string>& getVectorElements() const;

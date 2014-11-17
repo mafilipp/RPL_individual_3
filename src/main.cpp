@@ -96,19 +96,14 @@ int main(int argc, char** argv)
   std::string pathToDataBase;
   ros::NodeHandle n_paramters;
 
-//  if (n_paramters.getParam("/a", ciao))
-//  {
-//    ROS_INFO("Funziona!!");
-//  }
-
   // Load the parameters from parameter server
   n_paramters.getParam("/path_to_save_complete_image_pcl", pathToSaveComplete);
   n_paramters.getParam("/path_to_save_clusters_pcl", pathToclusters);
   n_paramters.getParam("/path_to_data_base", pathToDataBase);
 
-
-  std::cout << "path complete image" << pathToSaveComplete << std::endl << std::endl;
-  std::cout << "path clusters" << pathToclusters << std::endl << std::endl;
+  std::cout << std::endl << std::endl;
+  std::cout << "path complete image: " << pathToSaveComplete << std::endl << std::endl;
+  std::cout << "path clusters: " << pathToclusters << std::endl << std::endl;
 
 
   // Create the Helper object
@@ -125,22 +120,11 @@ int main(int argc, char** argv)
   ros::Publisher pub = n.advertise<PointCloudTF> ("points2", 1);
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
 
-
-
-//  int ciao = 100;
-
-
-
-
-
 //  ROS_INFO_STREAM("-> Map resized to "); // Non cambia niente
 //  ROS_ERROR("Sorry, could not find a path! Here are the points you requested:"); // scritta rossa
-  //==
 
 
- // Exctract clusters
-
-//  ClusterH clusterH;
+// ========================================= Wait untill we are uptodate
 
   ros::Rate loop_rate(1);
 
@@ -150,6 +134,7 @@ int main(int argc, char** argv)
 	  loop_rate.sleep ();
 
   }
+
   // Save the image
 
   //TODO:  point directly to cloudH.getCloud()
@@ -159,6 +144,10 @@ int main(int argc, char** argv)
 
   std::string nameSceneComplete = "complete_scene.pcd";
 
+  DirectoriesParser parserH(pathToSaveComplete);
+
+  parserH.removeAllFiles(pathToSaveComplete);
+
   cloudH.savePclImage(cloud_tmp_Ptr,pathToSaveComplete, nameSceneComplete);
 
   ROS_INFO("Create the complete image in a file .pcd");
@@ -166,7 +155,10 @@ int main(int argc, char** argv)
   // Here we have saved the image coming from the camera in the folder, so that we can create clusters with it
 
   // ====================================== Clusters extraction
-  // First create the cluster object
+
+  // First remove the old clusters
+  parserH.removeAllFiles(pathToclusters);
+  // Then create the cluster object
   ClusterH clusterH;
   clusterH.clusterExtraction(pathToSaveComplete + nameSceneComplete, pathToclusters);
 
@@ -209,9 +201,20 @@ int main(int argc, char** argv)
   int correspondance = 0;
 
 
-  for (std::vector< pcl::PointCloud<SpinImage>::Ptr >::iterator itCl = vectorDescriptorsClusters.begin(); itCl != vectorDescriptorsClusters.end(); ++itCl)
 
-  correspondance = cloudH.findCorrespondence(*itCl, vectorDescriptorsClusters[0]);
+    pcl::PointCloud<pcl::PointXYZ> aaa;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr ptrCloudBeforeClusteraa(&aaa);
+
+  for (std::vector< pcl::PointCloud<SpinImage>::Ptr >::iterator itCl = vectorDescriptorsClusters.begin(); itCl != vectorDescriptorsClusters.end(); ++itCl)
+  {
+	  for(int j = 0; j < 4; j ++)
+	  {
+//		  pcl::PointCloud<SpinImage>::Ptr DBPtr(dataBD.getDataBaseDescriptors());
+//		  correspondance = cloudH.findCorrespondence(*itCl, vectorDescriptorsClusters[0]);
+
+	  }
+  }
+
 
   std::cout << "CORRESPONDANCE FOUND 	" << correspondance << std::endl << std::endl;
 

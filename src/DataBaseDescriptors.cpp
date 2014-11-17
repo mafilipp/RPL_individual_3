@@ -103,7 +103,7 @@ void DataBaseDescriptors::calculateDataBaseDescriptors()
 
 		for(std::vector<string>::iterator it = vectorFiles[j].begin(); it != vectorFiles[j].end(); ++it)
 		{
-			newPath = path_dataBaseFolder + "/" + vectorDirectories[j] + "/" + *it;
+			newPath = path_dataBaseFolder + vectorDirectories[j] + "/" + *it;
 			std::cout << "--> " << *it;
 			std::cout << '\n';
 
@@ -115,16 +115,10 @@ void DataBaseDescriptors::calculateDataBaseDescriptors()
 			pointCloudDBD.computeSpin(newPath,dataBaseDescriptorsPtr);
 
 			// Store it at the right position
-			dataBaseDescriptors[j].push_back(dataBaseDescriptorsPtr);
-
-//			for(int id = 0; id < dataBaseDescriptorsPtr->points.size(); id++)
-//			{
-//				dataBaseDescriptors[j].push_back(dataBaseDescriptorsPtr->points[id]);
-////				spin_images->points[0]
-//			}
-
-			// DEBUGGING
-//			std::cout << endl << endl << dataBaseDescriptors[j].size() << std::endl <<  endl;
+			for(int id = 0; id < dataBaseDescriptorsPtr->points.size(); id++)
+			{
+				dataBaseDescriptors[j].push_back(dataBaseDescriptorsPtr->points[id]);
+			}
 
 			i++;
 		}
@@ -141,7 +135,5 @@ void DataBaseDescriptors::calculateDataBaseDescriptors()
 //	    std::cout << ' ' << *it;
 //	  	  std::cout << '\n';
 //	  }
-
-
 
 }
