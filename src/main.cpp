@@ -197,9 +197,23 @@ int main(int argc, char** argv)
 
   // =============================== Create Database
   DataBaseDescriptors dataBD(pathToDataBase);
+  dataBD.calculateDataBaseDescriptors();
 
   ROS_INFO("HERE");
 
+
+  // Compare the cluster with the Data Base in order to detect if an object of the database is present on the scene
+//  int PointCloudH::findCorrespondence(pcl::PointCloud<SpinImage>::Ptr model_descriptors, pcl::PointCloud<SpinImage>::Ptr scene_descriptors)
+
+
+  int correspondance = 0;
+
+
+  for (std::vector< pcl::PointCloud<SpinImage>::Ptr >::iterator itCl = vectorDescriptorsClusters.begin(); itCl != vectorDescriptorsClusters.end(); ++itCl)
+
+  correspondance = cloudH.findCorrespondence(*itCl, vectorDescriptorsClusters[0]);
+
+  std::cout << "CORRESPONDANCE FOUND 	" << correspondance << std::endl << std::endl;
 
 
 

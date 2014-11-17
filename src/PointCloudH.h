@@ -55,6 +55,9 @@ public:
 	void cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input);
 	void savePclImage(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_image, std::string path_to_save_image, std::string name);
 	void computeSpin(std::string pathToPcdImage, pcl::PointCloud<SpinImage>::Ptr descriptors);
+	void readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+	int findCorrespondence(pcl::PointCloud<SpinImage>::Ptr model_descriptors, pcl::PointCloud<SpinImage>::Ptr scene_descriptors);
+
 
 
 	const pcl::PointCloud<pcl::PointXYZ>& getCloud() const;

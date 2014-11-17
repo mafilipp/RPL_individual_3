@@ -54,10 +54,12 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
 
-#include "pointCloud.h"
+#include "PointCloudH.h"
 #include "DataBaseDescriptors.h"
 
 #include <boost/lexical_cast.hpp>
+
+#include "DirectoriesParser.h"
 
 using namespace std;
 typedef pcl::Histogram<153> SpinImage;
@@ -72,14 +74,15 @@ public:
 	void calculateDataBaseDescriptors();
 
 private:
+//	DirectoriesParser parser;
 	std::vector<std::string> vectorDirectories;
 	std::string path_dataBaseFolder;
-	pointCloud pointCloudDBD;
+	PointCloudH pointCloudDBD;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
 	pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> si;
 	pcl::PointCloud<pcl::Histogram<153> >::Ptr dataBaseDescriptorsPtr;
 //	std::vector< pcl::PointCloud<pcl::Histogram<153> > > dataBaseDescriptors;
-	std::vector<SpinImage> *dataBaseDescriptors;
+	std::vector< pcl::PointCloud<SpinImage>::Ptr > dataBaseDescriptors[10];
 
 
 

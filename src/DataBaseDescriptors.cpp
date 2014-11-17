@@ -6,6 +6,7 @@
  */
 
 #include "DataBaseDescriptors.h"
+#include "DirectoriesParser.h"
 
 #include <dirent.h>
 #include <string>
@@ -17,6 +18,8 @@ using namespace std;
 
 DataBaseDescriptors::DataBaseDescriptors(std::string path_dataBaseFolder_a)
 {
+//	parser(path_dataBaseFolder_a);
+
 	path_dataBaseFolder = path_dataBaseFolder_a;
 	vectorDirectories = open(path_dataBaseFolder);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1 (new pcl::PointCloud<pcl::PointXYZ>);
@@ -27,11 +30,12 @@ DataBaseDescriptors::DataBaseDescriptors(std::string path_dataBaseFolder_a)
 	//	std::vector<pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> > *dataBasePtr = new std::vector<pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> >(10);
 
 //	ROS_INFO("Detected %d objects", vectorDirectories.size());
-	std::cout << endl << endl << endl << "Detected " << vectorDirectories.size() << " objects"<< endl << endl << endl;
 	std::vector<SpinImage> * dataBaseDescriptror1 = new std::vector<SpinImage>[vectorDirectories.size()];
 	dataBaseDescriptors = dataBaseDescriptror1;
 //	*dataBaseDescriptors(std::vector<SpinImage> [5]);
 //	int * bigarray = new int[N];
+	std::cout << endl << endl << endl << "Detected " << vectorDirectories.size() << " objects"<< endl << endl << endl;
+
 }
 
 
@@ -71,6 +75,8 @@ void DataBaseDescriptors::calculateDataBaseDescriptors()
 {
 
 	// Define an array that contain all the file that are in the different folders
+	std::cout << "vector size = 	%d" << vectorDirectories.size() << std::endl;
+
 	std::vector<std::string> vectorFiles[vectorDirectories.size()];
 
 	int i = 0;
@@ -79,13 +85,16 @@ void DataBaseDescriptors::calculateDataBaseDescriptors()
 	for(std::vector<string>::iterator it = vectorDirectories.begin(); it != vectorDirectories.end(); ++it)
 	{
 
-		newPath = path_dataBaseFolder + *it;
+		newPath = path_dataBaseFolder + "/" + *it;
+		std::cout << newPath << std::endl << std::endl;
 		vectorFiles[i] = open(newPath);
 		i++;
 	}
 
 	// Create a vector of descriptor with the index that correspond to these of vectorDirecorie
 	//TODO
+
+	ROS_INFO("Here in databasedescriptor");
 
 	for (int j = 0; j < vectorDirectories.size(); j++)
 	{
@@ -94,24 +103,25 @@ void DataBaseDescriptors::calculateDataBaseDescriptors()
 
 		for(std::vector<string>::iterator it = vectorFiles[j].begin(); it != vectorFiles[j].end(); ++it)
 		{
-			newPath = path_dataBaseFolder + vectorDirectories[j] + "/" + *it;
+			newPath = path_dataBaseFolder + "/" + vectorDirectories[j] + "/" + *it;
 			std::cout << "--> " << *it;
 			std::cout << '\n';
-//			std::cout << newPath << "\n";
 
 			// In new path we have the path to come to the file *it
 			// We create the descriptor and push it back to the corresponding vector for the same object
 
-			// First for each .pcl file, open the figure, computer the descriptors
-			pointCloudDBD.readFile(newPath, cloud);
-			pointCloudDBD.computeSpin(cloud,dataBaseDescriptorsPtr);
+			// For each .pcl file, computer the spin image
+
+			pointCloudDBD.computeSpin(newPath,dataBaseDescriptorsPtr);
 
 			// Store it at the right position
-			for(int id = 0; id < dataBaseDescriptorsPtr->points.size(); id++)
-			{
-				dataBaseDescriptors[j].push_back(dataBaseDescriptorsPtr->points[id]);
-//				spin_images->points[0]
-			}
+			dataBaseDescriptors[j].push_back(dataBaseDescriptorsPtr);
+
+//			for(int id = 0; id < dataBaseDescriptorsPtr->points.size(); id++)
+//			{
+//				dataBaseDescriptors[j].push_back(dataBaseDescriptorsPtr->points[id]);
+////				spin_images->points[0]
+//			}
 
 			// DEBUGGING
 //			std::cout << endl << endl << dataBaseDescriptors[j].size() << std::endl <<  endl;
