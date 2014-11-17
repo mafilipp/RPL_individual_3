@@ -88,6 +88,45 @@ void PointCloudH::savePclImage(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_image, 
 }
 
 
+void PointCloudH::computeSpin(std::string pathToPcdImage, pcl::PointCloud<SpinImage>::Ptr descriptors)
+{
+	// Object for storing the point cloud.
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	// Object for storing the normals.
+	pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
+	// Object for storing the spin image for each point.
+//	pcl::PointCloud<SpinImage>::Ptr descriptors(new pcl::PointCloud<SpinImage>());
+
+	// Read in the cloud data
+	pcl::PCDReader reader;
+	reader.read (pathToPcdImage, *cloud);
+	std::cout << "PointCloud used for calculating Spin image has: " << cloud->points.size () << " data points." << std::endl; //*
+
+	// Note: you would usually perform downsampling now. It has been omitted here
+	// for simplicity, but be aware that computation can take a long time.
+
+	// Estimate the normals.
+	pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normalEstimation;
+	normalEstimation.setInputCloud(cloud);
+	normalEstimation.setRadiusSearch(0.03);
+	pcl::search::KdTree<pcl::PointXYZ>::Ptr kdtree(new pcl::search::KdTree<pcl::PointXYZ>);
+	normalEstimation.setSearchMethod(kdtree);
+	normalEstimation.compute(*normals);
+
+	// Spin image estimation object.
+	pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> si;
+	si.setInputCloud(cloud);
+	si.setInputNormals(normals);
+	// Radius of the support cylinder.
+	si.setRadiusSearch(0.02);
+	// Set the resolution of the spin image (the number of bins along one dimension).
+	// Note: you must change the output histogram size to reflect this.
+	si.setImageWidth(8);
+
+	si.compute(*descriptors);
+}
+
+
 // Getters and Setters
 
 const pcl::PointCloud<pcl::PointXYZ>& PointCloudH::getCloud() const {

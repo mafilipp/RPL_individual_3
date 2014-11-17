@@ -3,3 +3,4 @@
 a: 10
 path_to_save_clusters_pcl: "/home/mafilipp/catkin_ws/src/mafilipp/object_recognition/image/clusters_image/"
 path_to_save_complete_image_pcl: "/home/mafilipp/catkin_ws/src/mafilipp/object_recognition/image/complete_image/"
+path_to_data_base: "/home/mafilipp/data/objects"

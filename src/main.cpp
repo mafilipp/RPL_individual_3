@@ -50,6 +50,7 @@
 
 #include "PointCloudH.h"
 #include "ClusterH.h"
+#include "DirectoriesParser.h"
 
 // A handy typedef.
 typedef pcl::Histogram<153> SpinImage;
@@ -91,7 +92,8 @@ int main(int argc, char** argv)
   //====================== Parameters
 
   std::string pathToSaveComplete;
-  std::string pathToSaveclusters;
+  std::string pathToclusters;
+  std::string pathToDataBase;
   ros::NodeHandle n_paramters;
 
 //  if (n_paramters.getParam("/a", ciao))
@@ -101,11 +103,12 @@ int main(int argc, char** argv)
 
   // Load the parameters from parameter server
   n_paramters.getParam("/path_to_save_complete_image_pcl", pathToSaveComplete);
-  n_paramters.getParam("/path_to_save_clusters_pcl", pathToSaveclusters);
+  n_paramters.getParam("/path_to_save_clusters_pcl", pathToclusters);
+  n_paramters.getParam("/path_to_data_base", pathToDataBase);
 
 
   std::cout << "path complete image" << pathToSaveComplete << std::endl << std::endl;
-  std::cout << "path clusters" << pathToSaveclusters << std::endl << std::endl;
+  std::cout << "path clusters" << pathToclusters << std::endl << std::endl;
 
 
   // Create the Helper object
@@ -162,13 +165,59 @@ int main(int argc, char** argv)
 
   // Here we have saved the image coming from the camera in the folder, so that we can create clusters with it
 
+  // ====================================== Clusters extraction
   // First create the cluster object
   ClusterH clusterH;
-  clusterH.clusterExtraction(pathToSaveComplete + nameSceneComplete, pathToSaveclusters);
+  clusterH.clusterExtraction(pathToSaveComplete + nameSceneComplete, pathToclusters);
 
-  // Create a spin Image for all the clusters
 
-  // Now create the database with all the descriptors
+  // Create a spin Image vector for all the clusters
+  // This is done since maybe we would like to find multiple object rather than only one
+  std::vector< pcl::PointCloud<SpinImage>::Ptr > vectorDescriptorsClusters;
+
+  DirectoriesParser clustersParser(pathToclusters);
+
+  std::cout << "Element found in main:" << std::endl;
+  std::cout << clustersParser.getVectorElements().size();
+
+  // 		///////////////////////// Change This togli clusterP e usa direttamente clusterParser
+  std::vector<std::string> clusterP = clustersParser.getVectorElements();
+  std::string pathClustersElement;
+
+  for (std::vector<std::string>::iterator it = clusterP.begin(); it != clusterP.end(); ++it)
+  {
+	  pcl::PointCloud<SpinImage>::Ptr descriptorsClusters(new pcl::PointCloud<SpinImage>());
+	  pathClustersElement = pathToclusters + *it;
+	  std::cout << ' ' << pathClustersElement << '\n';
+	  cloudH.computeSpin(pathClustersElement, descriptorsClusters);
+	  vectorDescriptorsClusters.push_back(descriptorsClusters);
+  }
+  // 		//////////////////////////
+
+
+  // =============================== Create Database
+  ROS_INFO("HERE");
+
+
+
+
+//  for ()
+//  {
+//	  cloudH.computeSpin(std::string pathToPcdImage, descriptorsClusters);
+//
+//  }
+
+
+
+//  DataBaseDescriptors clusterDescriptors
+
+//  ROS_INFO("HERE");
+//  std::cout << pathToDataBase << std::endl;
+//  // Now create the database with all the descriptors
+//  DataBaseDescriptors dataBaseDescriptors(pathToDataBase);
+//  ROS_INFO("HERE2");
+//
+//  dataBaseDescriptors.calculateDataBaseDescriptors(); // Stored in dataBaseDescriptors.dataBaseDescriptors[i]
 
 
 

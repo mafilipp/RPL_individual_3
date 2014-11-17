@@ -26,7 +26,8 @@ DataBaseDescriptors::DataBaseDescriptors(std::string path_dataBaseFolder_a)
 	dataBaseDescriptorsPtr = spin_images;
 	//	std::vector<pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> > *dataBasePtr = new std::vector<pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> >(10);
 
-	std::cout << vectorDirectories.size() << endl << endl << endl;
+//	ROS_INFO("Detected %d objects", vectorDirectories.size());
+	std::cout << endl << endl << endl << "Detected " << vectorDirectories.size() << " objects"<< endl << endl << endl;
 	std::vector<SpinImage> * dataBaseDescriptror1 = new std::vector<SpinImage>[vectorDirectories.size()];
 	dataBaseDescriptors = dataBaseDescriptror1;
 //	*dataBaseDescriptors(std::vector<SpinImage> [5]);
