@@ -7,13 +7,7 @@
  */
 
 #include "DataBaseDescriptors.h"
-#include "DirectoriesParser.h"
 
-#include <dirent.h>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <boost/make_shared.hpp>
 
 using namespace std;
 

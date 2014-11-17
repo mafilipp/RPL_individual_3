@@ -7,6 +7,7 @@
  */
 
 #include "PointCloudH.h"
+
 // C++
 #include <iostream>
 // ROS
