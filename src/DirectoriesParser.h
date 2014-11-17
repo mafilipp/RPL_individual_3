@@ -22,7 +22,7 @@ public:
 
 
 	// Getters and setters
-	const std::vector<std::string>& getVectorElements() const;
+	std::vector<std::string>* getVectorElements();
 	void setVectorElements(const std::vector<std::string>& vectorElements);
 
 private:

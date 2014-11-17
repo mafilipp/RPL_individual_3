@@ -73,6 +73,10 @@ public:
 	std::vector<std::string> open(std::string path);
 	void calculateDataBaseDescriptors();
 
+	const std::vector<std::vector<pcl::PointCloud<SpinImage> > >& getDataBaseDescriptors() const;
+
+	void setDataBaseDescriptors(
+			const std::vector<std::vector<pcl::PointCloud<SpinImage> > >& dataBaseDescriptors);
 
 private:
 //	DirectoriesParser parser;
@@ -83,7 +87,8 @@ private:
 	pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage> si;
 	pcl::PointCloud<pcl::Histogram<153> >::Ptr dataBaseDescriptorsPtr;
 //	std::vector< pcl::PointCloud<pcl::Histogram<153> > > dataBaseDescriptors;
-	std::vector<SpinImage> *dataBaseDescriptors;
+
+	std::vector <std::vector<pcl::PointCloud<SpinImage> > > dataBaseDescriptors;
 
 
 };

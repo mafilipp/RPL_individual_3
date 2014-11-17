@@ -48,9 +48,7 @@ std::vector<std::string> DirectoriesParser::open(std::string path)
     return files;
 }
 
-const std::vector<std::string>& DirectoriesParser::getVectorElements() const {
-	return m_vectorElements;
-}
+
 
 void DirectoriesParser::removeAllFiles(std::string path)
 {
@@ -64,6 +62,10 @@ void DirectoriesParser::removeAllFiles(std::string path)
     }
 
 
+}
+
+ std::vector<std::string>* DirectoriesParser::getVectorElements(){
+	return &m_vectorElements;
 }
 
 void DirectoriesParser::setVectorElements(

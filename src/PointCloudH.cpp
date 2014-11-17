@@ -159,6 +159,7 @@ void PointCloudH::computeSpin(std::string pathToPcdImage, pcl::PointCloud<SpinIm
 int PointCloudH::findCorrespondence(pcl::PointCloud<SpinImage>::Ptr model_descriptors, pcl::PointCloud<SpinImage>::Ptr scene_descriptors)
 {
 
+
 	// Per far andare il tutto
 //	  pcl::PointCloud<DescriptorType>::Ptr model_descriptors (new pcl::PointCloud<DescriptorType> ());
 //	  pcl::PointCloud<DescriptorType>::Ptr scene_descriptors (new pcl::PointCloud<DescriptorType> ());
@@ -190,6 +191,32 @@ int PointCloudH::findCorrespondence(pcl::PointCloud<SpinImage>::Ptr model_descri
 	  return model_scene_corrs->size ();
 }
 
+//double PointCloudH::euclideanDistance(pcl::PointCloud<SpinImage> first, pcl::PointCloud<SpinImage> second)
+//{
+//	double total;
+//	for(int i = 0; i < first.points.size(); i++)
+//	{
+//		for(int j = 0; j < first.points[i].descriptorSize(); j++)
+//		{
+//			total += (first.points[i].histogram[j] - second.points[i].histogram[j]);
+//		}
+//	}
+//	return total;
+//
+//}
+
+double PointCloudH::euclideanDistance(SpinImage first, SpinImage second)
+{
+	double total;
+
+	for(int j = 0; j < first.descriptorSize(); j++)
+	{
+		total += (first.histogram[j] - second.histogram[j]);
+	}
+
+	return total;
+
+}
 
 // Getters and Setters
 

@@ -170,13 +170,17 @@ int main(int argc, char** argv)
   DirectoriesParser clustersParser(pathToclusters);
 
   std::cout << "Element found in main:" << std::endl;
-  std::cout << clustersParser.getVectorElements().size();
+  std::cout << clustersParser.getVectorElements()->size();
 
   // 		///////////////////////// Change This togli clusterP e usa direttamente clusterParser
-  std::vector<std::string> clusterP = clustersParser.getVectorElements();
+  std::vector<std::string>* clusterP = clustersParser.getVectorElements();
+
   std::string pathClustersElement;
 
-  for (std::vector<std::string>::iterator it = clusterP.begin(); it != clusterP.end(); ++it)
+  for (std::vector<std::string>::iterator it = clustersParser.getVectorElements()->begin(); it != clustersParser.getVectorElements()->end(); ++it)
+	  //
+
+  for (std::vector<std::string>::iterator it = clusterP->begin(); it != clusterP->end(); ++it)
   {
 	  pcl::PointCloud<SpinImage>::Ptr descriptorsClusters(new pcl::PointCloud<SpinImage>());
 	  pathClustersElement = pathToclusters + *it;
@@ -198,12 +202,44 @@ int main(int argc, char** argv)
 //  int PointCloudH::findCorrespondence(pcl::PointCloud<SpinImage>::Ptr model_descriptors, pcl::PointCloud<SpinImage>::Ptr scene_descriptors)
 
 
+  // Compare the clusters with the database -> Find if there is an object model on the scene and in which cluster it is
+
   int correspondance = 0;
+
+  std::vector<std::vector<pcl::PointCloud<SpinImage> > > DataBase = dataBD.getDataBaseDescriptors();
+
+  // Iterate through the different objects
+  for (std::vector<std::vector<pcl::PointCloud<SpinImage> > >::iterator itMO = DataBase.begin(); itMO != DataBase.end(); ++itMO)
+  {
+	  // Iterate through all the different model Cloud
+	  for (std::vector<pcl::PointCloud<SpinImage> >::iterator itMC = itMO->begin(); itMC != itMO->end(); ++itMC)
+	  {
+		  // Iterate through all the Spin Image of the object
+		  for (pcl::PointCloud<SpinImage>::iterator itMSI = itMC->begin(); itMSI != itMC->end(); ++itMSI)
+		  {
+			  // Iterate through all the object spin image
+			  for(std::vector< pcl::PointCloud<SpinImage>::Ptr >::iterator itC = vectorDescriptorsClusters.begin(); itC != vectorDescriptorsClusters.end(); ++itC)
+			  {
+//				  diff = cloudH.euclideanDistance(*itMSI,SISCENE);
+			  }
+		  }
+		  std::cout << "1" << std::endl;
+
+	  }
+
+//	  *itM[i]
+	  std::cout << "2" << std::endl;
+
+
+  }
+
 
 
 
     pcl::PointCloud<pcl::PointXYZ> aaa;
     pcl::PointCloud<pcl::PointXYZ>::Ptr ptrCloudBeforeClusteraa(&aaa);
+
+
 
   for (std::vector< pcl::PointCloud<SpinImage>::Ptr >::iterator itCl = vectorDescriptorsClusters.begin(); itCl != vectorDescriptorsClusters.end(); ++itCl)
   {
@@ -228,41 +264,22 @@ int main(int argc, char** argv)
 
 
 
-//  DataBaseDescriptors clusterDescriptors
 
-//  ROS_INFO("HERE");
-//  std::cout << pathToDataBase << std::endl;
-//  // Now create the database with all the descriptors
-//  DataBaseDescriptors dataBaseDescriptors(pathToDataBase);
-//  ROS_INFO("HERE2");
-//
-//  dataBaseDescriptors.calculateDataBaseDescriptors(); // Stored in dataBaseDescriptors.dataBaseDescriptors[i]
-
-
-
-
-
-//
-//  std::vector <PointCloudH> vectorClusterH;
-//
-//  std::vector <PointCloudH> vectorClusterH1;
-//
-//  vectorClusterH = vectorClusterH1;
-//
-//  // 1st way
-//  pcl::PointCloud<pcl::PointXYZ> cloudBeforeCluster;
-//  pcl::PointCloud<pcl::PointXYZ>::Ptr ptrCloudBeforeCluster(&cloudBeforeCluster);
-//
-//  vectorPoint * clusters;
-//
+  //================================= Send the marker to cover the figure
 
   PointCloudTF::Ptr msg (new PointCloudTF);
+
 
   while (n.ok())
   {
 
 	  if(cloudH.isUpToDate())
 	  {
+		  // Publish the marker
+		  marker_pub.publish(sendMarker(1.1f,1.1f,1.1f));
+
+
+
 //		  cloudBeforeCluster = cloudH.getCloud();
 
 		  //
@@ -317,8 +334,7 @@ int main(int argc, char** argv)
 	  ros::spinOnce ();
 	  loop_rate.sleep ();
 
-	  // Publish the marker
-	  marker_pub.publish(sendMarker(1.1f,1.1f,1.1f));
+
 
   }
 
@@ -329,7 +345,32 @@ int main(int argc, char** argv)
 
 
 
+  //  DataBaseDescriptors clusterDescriptors
 
+  //  ROS_INFO("HERE");
+  //  std::cout << pathToDataBase << std::endl;
+  //  // Now create the database with all the descriptors
+  //  DataBaseDescriptors dataBaseDescriptors(pathToDataBase);
+  //  ROS_INFO("HERE2");
+  //
+  //  dataBaseDescriptors.calculateDataBaseDescriptors(); // Stored in dataBaseDescriptors.dataBaseDescriptors[i]
+
+
+
+
+
+  //
+  //  std::vector <PointCloudH> vectorClusterH;
+  //
+  //  std::vector <PointCloudH> vectorClusterH1;
+  //
+  //  vectorClusterH = vectorClusterH1;
+  //
+  //  // 1st way
+  //  pcl::PointCloud<pcl::PointXYZ> cloudBeforeCluster;
+  //  pcl::PointCloud<pcl::PointXYZ>::Ptr ptrCloudBeforeCluster(&cloudBeforeCluster);
+  //
+  //  vectorPoint * clusters;
 
 
 
