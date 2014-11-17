@@ -2,7 +2,8 @@
  * DataBaseDescriptors.cpp
  *
  *  Created on: Nov 11, 2014
- *      Author: mafilipp
+ *      Author: Filippo Martinoni
+ *      Note: Implementation of the class DataBaseDescriptors
  */
 
 #include "DataBaseDescriptors.h"

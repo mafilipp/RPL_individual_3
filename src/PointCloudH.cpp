@@ -2,7 +2,8 @@
  * PointCloudH.cpp
  *
  *  Created on: Nov 14, 2014
- *      Author: mafilipp
+ *      Author: Filippo Martinoni
+ *      Note: Implementation of the class PointCloudH
  */
 
 #include "PointCloudH.h"

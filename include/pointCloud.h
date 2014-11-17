@@ -67,21 +67,17 @@ public:
 
 	void cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input);
 	void readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);//, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud
-	void clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::vector <std::vector< pcl::PointCloud<pcl::PointXYZ> > > &cloud_cluster_vector);
+	void clusterExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, std::vector< pcl::PointCloud<pcl::PointXYZ> > & cloud_cluster_vector);
 	void computeSpin(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::Histogram<153> >::Ptr spin_images);
 	int findCorrespondence(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, pcl::PointCloud<DescriptorType>::Ptr scene_descriptors);
 
 
 
 private:
-	pcl::PointCloud<pcl::PointXYZ> m_cloud;
-	int a;
-
 	//pcl::PointCloud<pcl::PointXYZ> cloud;
 
 //	pcl::PointCloud<pcl::PointXYZ> cloud;
 //	  pcl::PointCloud<pcl::PointXYZ>::Ptr cloudPtr;
-
 
 };
 

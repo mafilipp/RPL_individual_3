@@ -205,6 +205,7 @@ int main(int argc, char** argv)
   // Compare the clusters with the database -> Find if there is an object model on the scene and in which cluster it is
 
   int correspondance = 0;
+  double diff;
 
   std::vector<std::vector<pcl::PointCloud<SpinImage> > > DataBase = dataBD.getDataBaseDescriptors();
 
@@ -220,7 +221,12 @@ int main(int argc, char** argv)
 			  // Iterate through all the object spin image
 			  for(std::vector< pcl::PointCloud<SpinImage>::Ptr >::iterator itC = vectorDescriptorsClusters.begin(); itC != vectorDescriptorsClusters.end(); ++itC)
 			  {
-//				  diff = cloudH.euclideanDistance(*itMSI,SISCENE);
+				  // Iterate through all the histogram
+//				  for(pcl::PointCloud<SpinImage>::iterator itCH = itC; itC != vectorDescriptorsClusters.end(); ++itC)
+//				  {
+//					  diff = cloudH.euclideanDistance(*itMSI,*itMSI);
+//				  }
+
 			  }
 		  }
 		  std::cout << "1" << std::endl;
