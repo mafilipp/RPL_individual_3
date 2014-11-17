@@ -12,6 +12,7 @@
 #include <iostream>
 
 DirectoriesParser::DirectoriesParser(std::string path) {
+	m_path = path;
 	m_vectorElements = open(path);
 	// TODO Auto-generated constructor stub
 

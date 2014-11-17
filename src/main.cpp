@@ -196,6 +196,8 @@ int main(int argc, char** argv)
 
 
   // =============================== Create Database
+  DataBaseDescriptors dataBD(pathToDataBase);
+
   ROS_INFO("HERE");
 
 

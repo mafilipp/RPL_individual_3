@@ -24,6 +24,7 @@ public:
 	void setVectorElements(const std::vector<std::string>& vectorElements);
 
 private:
+	std::string m_path;
 	std::vector<std::string> m_vectorElements;
 };
 
