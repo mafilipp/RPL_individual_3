@@ -8,8 +8,4 @@
 
 
 
-
-  <node pkg="tf" type="static_transform_publisher" name="out_to_camera_link"
-    args="0 0 0 0 -$(arg pi_2) $(arg pi_2)  /camera_link_out /camera_link 100" />
-
  </launch>

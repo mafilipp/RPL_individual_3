@@ -88,6 +88,8 @@ void PointCloudH::cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input
 {
 	ROS_INFO("Camera Callback");
 
+	m_upToDate = false;
+
 	// Get and Filter the image
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_tmp (new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
@@ -98,11 +100,6 @@ void PointCloudH::cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input
 
 	passThroughFilter(cloud_tmp, cloud_filtered);
 	m_cloud = *cloud_filtered;
-
-	//	ROS_INFO("cloudH.getCloud()[1].x = %n",m_cloud.points.size());
-	ROS_INFO("heigh = %d, width = %d", m_cloud.height, m_cloud.width);
-
-	ROS_INFO("camera Callback finished");
 
 	m_upToDate = true;
 
