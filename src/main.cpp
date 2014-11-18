@@ -8,14 +8,9 @@
 #include <sensor_msgs/PointCloud2.h>
 // Markers
 #include <visualization_msgs/Marker.h>
-
-// sito
-
-
-#include <pcl/conversions.h> //I believe you were using pcl/ros/conversion.h
+#include <pcl/conversions.h>
 #include <pcl/point_cloud.h>
 
-#include <iostream>
 #include <pcl/io/pcd_io.h>
 
 #include <pcl/PCLPointCloud2.h>
@@ -29,25 +24,10 @@
 #include <pcl/features/normal_3d.h>
 #include <pcl/features/spin_image.h>
 
-// clusterExtraction
-#include <pcl/ModelCoefficients.h>
-#include <pcl/point_types.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/filters/extract_indices.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/features/normal_3d.h>
-#include <pcl/kdtree/kdtree.h>
-#include <pcl/sample_consensus/method_types.h>
-#include <pcl/sample_consensus/model_types.h>
-#include <pcl/segmentation/sac_segmentation.h>
-#include <pcl/segmentation/extract_clusters.h>
-
+// C++
+#include <iostream>
 #include <string>
-#include "pointCloud.h"
 #include "DataBaseDescriptors.h"
-
-#include <boost/lexical_cast.hpp>
-
 #include "PointCloudH.h"
 #include "ClusterH.h"
 #include "DirectoriesParser.h"
@@ -56,7 +36,6 @@
 typedef pcl::Histogram<153> SpinImage;
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloudTF;
 typedef std::vector < pcl::PointCloud<pcl::PointXYZ> > vectorPoint;
-
 
 
 visualization_msgs::Marker sendMarker(float minX, float minY, float minZ, float maxX, float maxY, float maxZ, std::string type);
@@ -96,7 +75,6 @@ int main(int argc, char** argv)
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
 
   //======================== Wait untill we have a pointcloud from the camera
-
   ros::Rate loop_rate(1);
 
   while (n.ok() && not cloudH.isUpToDate())
@@ -105,7 +83,7 @@ int main(int argc, char** argv)
 	  loop_rate.sleep ();
   }
 
-  // Save the image
+  //======================== Save the image
 
   pcl::PointCloud<pcl::PointXYZ> cloud_tmp = cloudH.getCloud();
 
@@ -154,23 +132,80 @@ int main(int argc, char** argv)
   }
 
 
-  //================================= Send the marker to cover the figure
+   // =============================== Create Database
+   DataBaseDescriptors dataBD(pathToDataBase);
+   dataBD.calculateDataBaseDescriptors();
+
+   //================================ Compare the spin image from every cluster with the spin images of the Databare
+   // Compare the clusters with the database -> Find if there is an object model on the scene and in which cluster it is
+
+   // Here I wanted to write an algorithm able to find out to which model our spin image belong, but it doesn't work
+
+   // From here to the end, since the whole didn't work, the stuff implemented are not completed..
+   int correspondance = 0;
+   double diff;
+   double minDiff;
+   double match = 0;
+
+   std::vector<double> matchRate;
+   std::vector<double> bestMatch;
+
+   std::vector<std::vector<pcl::PointCloud<SpinImage> > > DataBase = dataBD.getDataBaseDescriptors();
+   ROS_INFO("START FOR LOOP");
+   // Iterate through the different model objects
+   for (std::vector<std::vector<pcl::PointCloud<SpinImage> > >::iterator itMO = DataBase.begin(); itMO != DataBase.end(); ++itMO)
+   {
+ 	  // Iterate through all the different model Cloud (different pcd files)
+ 	  for (std::vector<pcl::PointCloud<SpinImage> >::iterator itMC = itMO->begin(); itMC != itMO->end(); ++itMC)
+ 	  {
+ 		  match = 0;
+ 		  // Iterate through all the Spin Image of the object
+ 		  for (pcl::PointCloud<SpinImage>::iterator itMSI = itMC->begin(); itMSI != itMC->end(); ++itMSI)
+ 		  {
+ 			  minDiff = 1000;
+
+ 			  // Iterate through all the clusters spin image
+ 			  for(std::vector< pcl::PointCloud<SpinImage>::Ptr >::iterator itC = vectorDescriptorsClusters.begin(); itC != vectorDescriptorsClusters.end(); ++itC)
+ 			  {
+ 				  // Iterate through all the histogram
+ 				  for(pcl::PointCloud<SpinImage>::iterator itCH = (*itC)->begin(); itCH != (*itC)->end(); ++itCH)
+ 				  {
+ 					  diff = cloudH.euclideanNorm(*itMSI,*itCH);
+ 					  if(diff < minDiff)
+ 						  minDiff = diff;
+ 				  }
+ 			  }
+ 			  match += minDiff/(*itMSI).descriptorSize();
+ 		  }
+ 		  matchRate.push_back(match);
+ 	  }
+
+ 	  double best = 100;
+
+ 	  //Find the best matches
+ 	  for(std::vector<double>::iterator itMa = matchRate.begin(); itMa != matchRate.end(); ++itMa)
+ 	  {
+ 		  if(*itMa < best)
+ 			  best = *itMa;
+ 	  }
+
+ 	  bestMatch.push_back(best);
+   }
+
+
+  //================================= Send the marker to cover the figure with the desired color
 
   PointCloudTF::Ptr msg (new PointCloudTF);
-
 
   while (n.ok())
   {
 
 	  if(cloudH.isUpToDate())
 	  {
-		  // Publish the message
+		  // Publish the message with the image coming from the camera (Debug Purpose)
 		  msg->header.frame_id = "camera_link";
 		  msg->height = cloudH.getCloud().height;
 		  msg->width = cloudH.getCloud().width;
-//		  msg->points.clear();
-//		  for(int i = 0; i < cloudH.getCloud().size(); i++)
-//			  msg->points.push_back (cloudH.getCloud().points[i]);
 		  msg ->points = cloudH.getCloud().points;
 		  ros::Time time_st = ros::Time::now ();
 		  msg->header.stamp = time_st.toNSec()/1e3;
@@ -185,6 +220,7 @@ int main(int argc, char** argv)
 		  maxY = 0;
 		  maxZ = 0;
 
+		  // Find the boundary of the objects
 		  pcl::PointCloud<pcl::PointXYZ> pointCloudXYZtmp = cloudH.getCloud();
 		  for(pcl::PointCloud<pcl::PointXYZ>::iterator it = pointCloudXYZtmp.points.begin(); it != pointCloudXYZtmp.points.end(); ++it)
 		  {
@@ -203,11 +239,7 @@ int main(int argc, char** argv)
 		  }
 
 		  std::string object;
-//		  for(std::vector<pcl::PointCloud<pcl::PointXYZ>>::iterator it = cloudH.getCloud().begin(); it != cloudH.getCloud().end(); ++it)
-//		  {
-//
-//		  }
-		  // Publish the marker
+
 		  marker_pub.publish(sendMarker(minX,minY,minZ,maxX,maxY,maxZ, object));
 
 	  }
@@ -216,125 +248,15 @@ int main(int argc, char** argv)
   }
 
 
- // Not needed now
-//
-//  // =============================== Create Database
-//  DataBaseDescriptors dataBD(pathToDataBase);
-//  dataBD.calculateDataBaseDescriptors();
-//
-//  ROS_INFO("HERE");
-//
-//
-//  // Compare the cluster with the Data Base in order to detect if an object of the database is present on the scene
-////  int PointCloudH::findCorrespondence(pcl::PointCloud<SpinImage>::Ptr model_descriptors, pcl::PointCloud<SpinImage>::Ptr scene_descriptors)
-//
-//
-//  // Compare the clusters with the database -> Find if there is an object model on the scene and in which cluster it is
-//
-//  int correspondance = 0;
-//  double diff;
-//  double minDiff;
-//  double match = 0;
-//
-//  std::vector<double> matchRate;
-//  std::vector<double> bestMatch;
-//
-//  std::vector<std::vector<pcl::PointCloud<SpinImage> > > DataBase = dataBD.getDataBaseDescriptors();
-//  ROS_INFO("START FOR LOOP");
-//  // Iterate through the different model objects
-//  for (std::vector<std::vector<pcl::PointCloud<SpinImage> > >::iterator itMO = DataBase.begin(); itMO != DataBase.end(); ++itMO)
-//  {
-//	  // Iterate through all the different model Cloud (different pcd files)
-//	  for (std::vector<pcl::PointCloud<SpinImage> >::iterator itMC = itMO->begin(); itMC != itMO->end(); ++itMC)
-//	  {
-//		  match = 0;
-//		  // Iterate through all the Spin Image of the object
-//		  for (pcl::PointCloud<SpinImage>::iterator itMSI = itMC->begin(); itMSI != itMC->end(); ++itMSI)
-//		  {
-//			  minDiff = 1000;
-//
-//			  // Iterate through all the clusters spin image
-//			  for(std::vector< pcl::PointCloud<SpinImage>::Ptr >::iterator itC = vectorDescriptorsClusters.begin(); itC != vectorDescriptorsClusters.end(); ++itC)
-//			  {
-//				  // Iterate through all the histogram
-//				  for(pcl::PointCloud<SpinImage>::iterator itCH = (*itC)->begin(); itCH != (*itC)->end(); ++itCH)
-//				  {
-//					  diff = cloudH.euclideanNorm(*itMSI,*itCH);
-//					  if(diff < minDiff)
-//						  minDiff = diff;
-//
-////					  std::cout << "difff  " << diff << std::endl;
-////					  std::cout << "itMSI  " << *itMSI << std::endl << std::endl << std::endl;
-////					  std::cout << diff << std::endl;
-////					  std::cout << "itCH  " << *itCH << std::endl << std::endl << std::endl;
-//				  }
-//
-//				  std::cout << "minimale     " << minDiff << std::endl;
-//
-//			  }
-//			  match += minDiff/(*itMSI).descriptorSize();
-//
-//		  }
-//		  matchRate.push_back(match);
-//
-//	  }
-//
-//	  double best = 100;
-//	  //Find the best matches
-//	  for(std::vector<double>::iterator itMa = matchRate.begin(); itMa != matchRate.end(); ++itMa)
-//	  {
-//		  std::cout << "->->->->   " << *itMa << std::endl;
-//		  if(*itMa < best)
-//			  best = *itMa;
-//	  }
-//
-//	  bestMatch.push_back(best);
-//  }
-//
-//
-//
-//  ROS_INFO("Noi Siamo QUA");
-//  for(std::vector<double>::iterator itMa = bestMatch.begin(); itMa != bestMatch.end(); ++itMa)
-//	  std::cout << "------------   " << *itMa << std::endl;
-//
-//
-//
-//
-//    pcl::PointCloud<pcl::PointXYZ> aaa;
-//    pcl::PointCloud<pcl::PointXYZ>::Ptr ptrCloudBeforeClusteraa(&aaa);
-//
-//
-//
-//  for (std::vector< pcl::PointCloud<SpinImage>::Ptr >::iterator itCl = vectorDescriptorsClusters.begin(); itCl != vectorDescriptorsClusters.end(); ++itCl)
-//  {
-//	  for(int j = 0; j < 4; j ++)
-//	  {
-////		  pcl::PointCloud<SpinImage>::Ptr DBPtr(dataBD.getDataBaseDescriptors());
-////		  correspondance = cloudH.findCorrespondence(*itCl, vectorDescriptorsClusters[0]);
-//
-//	  }
-//  }
-//
-//
-//  std::cout << "CORRESPONDANCE FOUND 	" << correspondance << std::endl << std::endl;
-//
-//
-//
-////  for ()
-////  {
-////	  cloudH.computeSpin(std::string pathToPcdImage, descriptorsClusters);
-////
-////  }
-//
+
 
 
 
 }
 
 
-//==================================== Roba che al momento non serve
+//==================================== Marker Message
 
-//, float scaleX, float scaleY, float scaleZ std::string type,
 visualization_msgs::Marker sendMarker(float minX, float minY, float minZ, float maxX, float maxY, float maxZ, std::string type)
 {
 	// Set our initial shape type to be a cube
@@ -379,6 +301,8 @@ visualization_msgs::Marker sendMarker(float minX, float minY, float minZ, float 
 	marker.scale.z = scaleZ;
 
 	// Set the color -- be sure to set alpha to something non-zero!
+
+	// Here I would insert a case in order to set the right color with the correspondance to the object detected
 	marker.color.r = 0.0f;
 	marker.color.g = 1.0f;
 	marker.color.b = 0.0f;
@@ -387,121 +311,4 @@ visualization_msgs::Marker sendMarker(float minX, float minY, float minZ, float 
 	marker.lifetime = ros::Duration();
 
 	return marker;
-
 }
-
-
-
-
-
-
-//  DataBaseDescriptors clusterDescriptors
-
-//  ROS_INFO("HERE");
-//  std::cout << pathToDataBase << std::endl;
-//  // Now create the database with all the descriptors
-//  DataBaseDescriptors dataBaseDescriptors(pathToDataBase);
-//  ROS_INFO("HERE2");
-//
-//  dataBaseDescriptors.calculateDataBaseDescriptors(); // Stored in dataBaseDescriptors.dataBaseDescriptors[i]
-
-
-
-
-
-//
-//  std::vector <PointCloudH> vectorClusterH;
-//
-//  std::vector <PointCloudH> vectorClusterH1;
-//
-//  vectorClusterH = vectorClusterH1;
-//
-//  // 1st way
-//  pcl::PointCloud<pcl::PointXYZ> cloudBeforeCluster;
-//  pcl::PointCloud<pcl::PointXYZ>::Ptr ptrCloudBeforeCluster(&cloudBeforeCluster);
-//
-//  vectorPoint * clusters;
-
-
-
-
-//  //===========================================
-//  // Path where to find the file to analize
-////  std::string path = "/home/mafilipp/Desktop/table_scene_lms400.pcd";
-////  std::string path = "/home/mafilipp/data/objects/duck/duck_close_90.pcd";
-//  std::string path = "/home/mafilipp/catkin_ws/src/mafilipp/object_recognition/image/complete_image";
-//
-//
-//  // Read files from database and create a database descriptor
-////  std::string path_dataBaseFolder = "/home/mafilipp/data/objects/";
-//  std::string path_dataBaseFolder = "/home/mafilipp/catkin_ws/src/mafilipp/object_recognition/image/database_image";
-//
-//  DataBaseDescriptors dataBaseDescriptors(path_dataBaseFolder);
-//  dataBaseDescriptors.calculateDataBaseDescriptors(); // Stored in dataBaseDescriptors.dataBaseDescriptors[i]
-//
-//  // create a point cloud element -> This contain all the operation that we have to perform
-//  pointCloud pointCloud;
-//
-//  // Define the point cloud coming either from a file or an image
-//  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-//
-//  // Define Spin image
-//  pcl::SpinImageEstimation<pcl::PointXYZ, pcl::Normal, SpinImage>::Ptr si;
-//
-//  // Read from a file the point cloud, and store it in cloud
-//  pointCloud.readFile(path, cloud); // -> In cloud I have now the complete image
-//
-//  // Vector that contain all the clusters
-//  std::vector <std::vector< pcl::PointCloud<pcl::PointXYZ> > >cloud_cluster_vector;
-//
-////  pointCloud.clusterExtraction(cloud, cloud_cluster_vector);
-//
-//  // To deletw!
-//  std::vector< pcl::PointCloud<pcl::PointXYZ> > cloud_cluster;
-//  pointCloud.clusterExtraction(cloud, cloud_cluster);
-//
-//
-////  std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloud_cluster;// (new pcl::PointCloud<pcl::PointXYZ>);
-////  cloud_cluster.push_back(new pcl::PointCloud<pcl::PointXYZ>);   ??????????
-//
-//
-//  pcl::PointCloud<pcl::Histogram<153> >::Ptr spinImage;
-//
-//  pcl::PointCloud<DescriptorType>::Ptr scene_descriptors(new pcl::PointCloud<DescriptorType> [cloud_cluster.size()]);
-//
-//  // Compute all the descriptors for the different clusters
-//  for(std::vector< pcl::PointCloud<pcl::PointXYZ> >::iterator it = cloud_cluster.begin(); it != cloud_cluster.end(); ++it)
-//  {
-//	  pointCloud.computeSpin(cloud,spinImage);
-//  }
-//
-//
-//  ROS_INFO("start read -");
-//
-//
-//  // Vettori da usare
-//  // Model
-////  dataBaseDescriptors.dataBaseDescriptors
-//
-//
-//  // Find Correspondence
-//  // Compare the descriptor with the dataBaseDescriptors
-//  int match;
-////  for (int idDB = 0; idDB < ; idDB++)
-////
-////  for(std::vector< pcl::PointCloud<DescriptorType>::Ptr >::iterator itModel = cloud_cluster.begin(); itModel != cloud_cluster.end(); ++itModel)
-////  {
-////	  for(std::vector< pcl::PointCloud<DescriptorType>::Ptr >::iterator itDataBase = dataBaseDescriptors.dataBaseDescriptors[0].begin(); itDataBase != cloud_cluster.end(); ++itDataBase)
-////	  {
-////		  match = pointCloud.findCorrespondence(*itModel, *itDataBase);
-//////		  match = pointCloud.findCorrespondence(pcl::PointCloud<DescriptorType>::Ptr model_descriptors, pcl::PointCloud<DescriptorType>::Ptr scene_descriptors);
-////
-////	  }
-//
-//
-////  }
-//
-//
-////===========================================
-
-/////======================= ALTRO

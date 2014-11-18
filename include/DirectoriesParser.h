@@ -2,15 +2,18 @@
  * DirectoriesParser.h
  *
  *  Created on: Nov 17, 2014
- *      Author: mafilipp
+ *      Author: Filippo Martinoni
+ *      Note: This class implement function that help with the parse of class elements
  */
 
 #ifndef MAFILIPP_OBJECT_RECOGNITION_SRC_DIRECTORIESPARSER_H_
 #define MAFILIPP_OBJECT_RECOGNITION_SRC_DIRECTORIESPARSER_H_
 
+#include <dirent.h>
 #include <string>
 #include <vector>
 #include <iostream>
+#include <stdio.h>
 
 class DirectoriesParser {
 public:
@@ -19,7 +22,6 @@ public:
 
 	std::vector<std::string> open(std::string path);
 	void removeAllFiles(std::string path);
-
 
 	// Getters and setters
 	std::vector<std::string>* getVectorElements();

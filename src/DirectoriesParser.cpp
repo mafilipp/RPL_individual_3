@@ -2,15 +2,11 @@
  * DirectoriesParser.cpp
  *
  *  Created on: Nov 17, 2014
- *      Author: mafilipp
+ *      Author: Filippo Martinoni
+ *      Note: Implementation of DirectoriesParser.h
  */
 
 #include "DirectoriesParser.h"
-#include <dirent.h>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <stdio.h>
 
 
 DirectoriesParser::DirectoriesParser(std::string path) {

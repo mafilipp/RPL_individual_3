@@ -166,5 +166,5 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(object_recognition src/PointCloudH.cpp src/DirectoriesParser.cpp src/ClusterH.cpp src/DataBaseDescriptors.cpp src/pointCloud.cpp src/main.cpp)
+add_executable(object_recognition src/PointCloudH.cpp src/DirectoriesParser.cpp src/ClusterH.cpp src/DataBaseDescriptors.cpp src/main.cpp)
 target_link_libraries(object_recognition ${catkin_LIBRARIES})

@@ -8,79 +8,11 @@
 
 #include "PointCloudH.h"
 
-// C++
-#include <iostream>
-// ROS
-#include <ros/ros.h>
-#include <sensor_msgs/PointCloud2.h>
-// Point Cloud
-#include <pcl_ros/point_cloud.h>
-#include <pcl/point_types.h>
-
-#include <boost/foreach.hpp>
-// Subscribe to the camera
-#include <sensor_msgs/PointCloud2.h>
-// Markers
-#include <visualization_msgs/Marker.h>
-
-// sito
-#include <pcl/conversions.h>
-#include <pcl/point_cloud.h>
-#include <iostream>
-#include <pcl/io/pcd_io.h>
-#include <pcl/PCLPointCloud2.h>
-#include <pcl_conversions/pcl_conversions.h>
-
-// Read File
-
-#include <pcl/point_types.h>
-
-// Spin image
-#include <pcl/features/normal_3d.h>
-#include <pcl/features/spin_image.h>
-
-
-// Change dir
-#include <string>
-#include <sys/param.h>
-#include <unistd.h>
-
-// Correspondance
-#include <pcl/io/pcd_io.h>
-#include <pcl/point_cloud.h>
-#include <pcl/correspondence.h>
-#include <pcl/features/normal_3d_omp.h>
-#include <pcl/features/shot_omp.h>
-#include <pcl/features/board.h>
-#include <pcl/keypoints/uniform_sampling.h>
-#include <pcl/recognition/cg/hough_3d.h>
-#include <pcl/recognition/cg/geometric_consistency.h>
-#include <pcl/visualization/pcl_visualizer.h>
-#include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/kdtree/impl/kdtree_flann.hpp>
-#include <pcl/common/transforms.h>
-#include <pcl/console/parse.h>
-
-// Filter
-#include <pcl/filters/passthrough.h>
-
-typedef pcl::PointXYZRGBA PointType;
-typedef pcl::Normal NormalType;
-typedef pcl::ReferenceFrame RFType;
-//typedef pcl::SHOT352 DescriptorType;
-typedef pcl::Histogram<153> SpinImage;
-
-
-
 PointCloudH::PointCloudH() {
-	// TODO Auto-generated constructor stub
 	m_upToDate = false;
-//	m_cloud = new pcl::PointCloud<pcl::PointXYZ>;
-
 }
 
 PointCloudH::~PointCloudH() {
-	// TODO Auto-generated destructor stub
 }
 
 
@@ -98,11 +30,11 @@ void PointCloudH::cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input
 	pcl_conversions::toPCL(*input, pcl_pc);
 	pcl::fromPCLPointCloud2(pcl_pc, *cloud_tmp);
 
-	passThroughFilter(cloud_tmp, cloud_filtered);
-	m_cloud = *cloud_filtered;
+	// if we already want to filter the image
+//	passThroughFilter(cloud_tmp, cloud_filtered);
+//	m_cloud = *cloud_filtered;
 
 	m_upToDate = true;
-
 }
 
 void PointCloudH::savePclImage(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_image, std::string path_to_save_image, std::string name)
@@ -114,11 +46,9 @@ void PointCloudH::savePclImage(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_image, 
 
 void PointCloudH::readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 {
-	if (pcl::io::loadPCDFile<pcl::PointXYZ> (path, *cloud) == -1) //* load the file
+	if (pcl::io::loadPCDFile<pcl::PointXYZ> (path, *cloud) == -1)
 	{
-//		std::string error = "Couldn't read file" + path +  "\n";
-//		PCL_ERROR (error);
-	PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
+		PCL_ERROR ("Couldn't read file name_file.pcd \n");
 	}
 	std::cout << "Loaded "
 			<< cloud->width * cloud->height
@@ -134,7 +64,6 @@ void PointCloudH::computeSpin(std::string pathToPcdImage, pcl::PointCloud<SpinIm
 	// Object for storing the normals.
 	pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
 	// Object for storing the spin image for each point.
-//	pcl::PointCloud<SpinImage>::Ptr descriptors(new pcl::PointCloud<SpinImage>());
 
 	// Read in the cloud data
 	pcl::PCDReader reader;
@@ -161,56 +90,16 @@ void PointCloudH::computeSpin(std::string pathToPcdImage, pcl::PointCloud<SpinIm
 	// Set the resolution of the spin image (the number of bins along one dimension).
 	// Note: you must change the output histogram size to reflect this.
 	si.setImageWidth(8);
-
 	si.compute(*descriptors);
-}
-
-
-int PointCloudH::findCorrespondence(pcl::PointCloud<SpinImage>::Ptr model_descriptors, pcl::PointCloud<SpinImage>::Ptr scene_descriptors)
-{
-
-
-	// Per far andare il tutto
-//	  pcl::PointCloud<DescriptorType>::Ptr model_descriptors (new pcl::PointCloud<DescriptorType> ());
-//	  pcl::PointCloud<DescriptorType>::Ptr scene_descriptors (new pcl::PointCloud<DescriptorType> ());
-
-	//
-	  pcl::CorrespondencesPtr model_scene_corrs (new pcl::Correspondences ());
-
-	  pcl::KdTreeFLANN<DescriptorType> match_search;
-	  match_search.setInputCloud (model_descriptors);
-
-	  //  For each scene keypoint descriptor, find nearest neighbor into the model keypoints descriptor cloud and add it to the correspondences vector.
-	  for (size_t i = 0; i < scene_descriptors->size (); ++i)
-	  {
-	    std::vector<int> neigh_indices (1);
-	    std::vector<float> neigh_sqr_dists (1);
-//	    if (!pcl_isfinite (scene_descriptors->at (i).descriptor[0])) //skipping NaNs
-//	    {
-//	      continue;
-//	    }
-	    int found_neighs = match_search.nearestKSearch (scene_descriptors->at (i), 1, neigh_indices, neigh_sqr_dists);
-	    if(found_neighs == 1 && neigh_sqr_dists[0] < 0.25f) //  add match only if the squared descriptor distance is less than 0.25 (SHOT descriptor distances are between 0 and 1 by design)
-	    {
-	      pcl::Correspondence corr (neigh_indices[0], static_cast<int> (i), neigh_sqr_dists[0]);
-	      model_scene_corrs->push_back (corr);
-	    }
-	  }
-	  std::cout << "Correspondences found: " << model_scene_corrs->size () << std::endl;
-
-	  return model_scene_corrs->size ();
 }
 
 double PointCloudH::euclideanNorm(SpinImage first, SpinImage second)
 {
 	double total;
-
 	for(int j = 0; j < first.descriptorSize(); j++)
 	{
 		total += fabs(first.histogram[j] - second.histogram[j]);
 	}
-
-//	std::cout << "TOT  " << total << std::endl;
 	return total;
 }
 
@@ -223,6 +112,7 @@ void PointCloudH::passThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, p
 	  //pass.setFilterLimitsNegative (true);
 	  pass.filter (*cloud_filtered);
 }
+
 
 // Getters and Setters
 

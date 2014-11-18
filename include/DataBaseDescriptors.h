@@ -39,10 +39,9 @@ public:
 	// Setters and Getters
 	const std::vector<std::vector<pcl::PointCloud<SpinImage> > >& getDataBaseDescriptors() const;
 	void setDataBaseDescriptors(
-			const std::vector<std::vector<pcl::PointCloud<SpinImage> > >& dataBaseDescriptors);
+	const std::vector<std::vector<pcl::PointCloud<SpinImage> > >& dataBaseDescriptors);
 
 private:
-//	DirectoriesParser parser;
 	std::vector<std::string> vectorDirectories;
 	std::string path_dataBaseFolder;
 	PointCloudH pointCloudDBD;

@@ -3,7 +3,7 @@
  *
  *  Created on: Nov 15, 2014
  *      Author: Filippo Martinoni
- *      Note: This helper class contains function for the creation of clustering, given the path to a .pcd image
+ *      Note: This helper class contains function for the creation of clustering .pcd image, given the path to a .pcd image
  */
 
 #ifndef MAFILIPP_OBJECT_RECOGNITION_SRC_CLUSTERH_H_
@@ -41,9 +41,6 @@ public:
 	ClusterH();
 	virtual ~ClusterH();
 	void clusterExtraction(std::string path_to_coplete_scene_file, std::string path_to_save_clusters);
-
-//private:
-//	std::vector < pcl::PointCloud<pcl::PointXYZ> > m_vector_clusterH;
 };
 
 #endif /* MAFILIPP_OBJECT_RECOGNITION_SRC_CLUSTERH_H_ */
