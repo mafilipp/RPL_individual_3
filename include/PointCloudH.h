@@ -58,8 +58,9 @@ public:
 	void readFile(const std::string& path, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 	int findCorrespondence(pcl::PointCloud<SpinImage>::Ptr model_descriptors, pcl::PointCloud<SpinImage>::Ptr scene_descriptors);
 //	double euclideanDistance(pcl::PointCloud<SpinImage> first, pcl::PointCloud<SpinImage> second);
+	void passThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered);
 
-	double euclideanDistance(SpinImage first, SpinImage second);
+	double euclideanNorm(SpinImage first, SpinImage second);
 
 
 

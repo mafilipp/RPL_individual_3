@@ -206,38 +206,67 @@ int main(int argc, char** argv)
 
   int correspondance = 0;
   double diff;
+  double minDiff;
+  double match = 0;
+
+  std::vector<double> matchRate;
+  std::vector<double> bestMatch;
 
   std::vector<std::vector<pcl::PointCloud<SpinImage> > > DataBase = dataBD.getDataBaseDescriptors();
-
-  // Iterate through the different objects
+  ROS_INFO("START FOR LOOP");
+  // Iterate through the different model objects
   for (std::vector<std::vector<pcl::PointCloud<SpinImage> > >::iterator itMO = DataBase.begin(); itMO != DataBase.end(); ++itMO)
   {
-	  // Iterate through all the different model Cloud
+	  // Iterate through all the different model Cloud (different pcd files)
 	  for (std::vector<pcl::PointCloud<SpinImage> >::iterator itMC = itMO->begin(); itMC != itMO->end(); ++itMC)
 	  {
+		  match = 0;
 		  // Iterate through all the Spin Image of the object
 		  for (pcl::PointCloud<SpinImage>::iterator itMSI = itMC->begin(); itMSI != itMC->end(); ++itMSI)
 		  {
-			  // Iterate through all the object spin image
+			  minDiff = 1000;
+
+			  // Iterate through all the clusters spin image
 			  for(std::vector< pcl::PointCloud<SpinImage>::Ptr >::iterator itC = vectorDescriptorsClusters.begin(); itC != vectorDescriptorsClusters.end(); ++itC)
 			  {
 				  // Iterate through all the histogram
-//				  for(pcl::PointCloud<SpinImage>::iterator itCH = itC; itC != vectorDescriptorsClusters.end(); ++itC)
-//				  {
-//					  diff = cloudH.euclideanDistance(*itMSI,*itMSI);
-//				  }
+				  for(pcl::PointCloud<SpinImage>::iterator itCH = (*itC)->begin(); itCH != (*itC)->end(); ++itCH)
+				  {
+					  diff = cloudH.euclideanNorm(*itMSI,*itCH);
+					  if(diff < minDiff)
+						  minDiff = diff;
+
+//					  std::cout << "difff  " << diff << std::endl;
+//					  std::cout << "itMSI  " << *itMSI << std::endl << std::endl << std::endl;
+//					  std::cout << diff << std::endl;
+//					  std::cout << "itCH  " << *itCH << std::endl << std::endl << std::endl;
+				  }
+
+				  std::cout << "minimale     " << minDiff << std::endl;
 
 			  }
+			  match += minDiff/(*itMSI).descriptorSize();
+
 		  }
-		  std::cout << "1" << std::endl;
+		  matchRate.push_back(match);
 
 	  }
 
-//	  *itM[i]
-	  std::cout << "2" << std::endl;
+	  double best = 100;
+	  //Find the best matches
+	  for(std::vector<double>::iterator itMa = matchRate.begin(); itMa != matchRate.end(); ++itMa)
+	  {
+		  std::cout << "->->->->   " << *itMa << std::endl;
+		  if(*itMa < best)
+			  best = *itMa;
+	  }
 
-
+	  bestMatch.push_back(best);
   }
+
+  ROS_INFO("Noi Siamo QUA");
+  for(std::vector<double>::iterator itMa = bestMatch.begin(); itMa != bestMatch.end(); ++itMa)
+	  std::cout << "------------   " << *itMa << std::endl;
 
 
 
@@ -335,72 +364,19 @@ int main(int argc, char** argv)
 		  pub.publish (msg);
 
 	  }
-
-
 	  ros::spinOnce ();
 	  loop_rate.sleep ();
-
-
-
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //==================================== Roba che al momento non serve
 
+//, float scaleX, float scaleY, float scaleZ std::string type,
 visualization_msgs::Marker sendMarker(float x, float y, float z)
 {
 	// Set our initial shape type to be a cube
-	uint32_t shape = visualization_msgs::Marker::CYLINDER;
+	uint32_t shape = visualization_msgs::Marker::CUBE;
 
 	//	// Cycle between different shapes
 	//	switch (shape)
@@ -421,7 +397,7 @@ visualization_msgs::Marker sendMarker(float x, float y, float z)
 
 	visualization_msgs::Marker marker;
 	// Set the frame ID and timestamp.  See the TF tutorials for information on these.
-	marker.header.frame_id = "/my_frame";
+	marker.header.frame_id = "/camera_link";
 	marker.header.stamp = ros::Time::now();
 
 
@@ -461,6 +437,9 @@ visualization_msgs::Marker sendMarker(float x, float y, float z)
 	return marker;
 
 }
+
+
+
 
 
 

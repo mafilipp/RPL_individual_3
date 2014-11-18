@@ -80,7 +80,7 @@ void DataBaseDescriptors::calculateDataBaseDescriptors()
 
 	for(std::vector<string>::iterator it = vectorDirectories.begin(); it != vectorDirectories.end(); ++it)
 	{
-		newPath = path_dataBaseFolder + "/" + *it;
+		newPath = path_dataBaseFolder + *it;
 		std::cout << newPath << std::endl << std::endl;
 		vectorFiles[i] = open(newPath);
 		i++;

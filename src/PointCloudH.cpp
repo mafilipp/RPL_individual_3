@@ -61,6 +61,8 @@
 #include <pcl/common/transforms.h>
 #include <pcl/console/parse.h>
 
+// Filter
+#include <pcl/filters/passthrough.h>
 
 typedef pcl::PointXYZRGBA PointType;
 typedef pcl::Normal NormalType;
@@ -85,9 +87,18 @@ PointCloudH::~PointCloudH() {
 void PointCloudH::cameraCallback(const sensor_msgs::PointCloud2::ConstPtr& input)
 {
 	ROS_INFO("Camera Callback");
+
+	// Get and Filter the image
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_tmp (new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
+
 	pcl::PCLPointCloud2 pcl_pc;
 	pcl_conversions::toPCL(*input, pcl_pc);
-	pcl::fromPCLPointCloud2(pcl_pc, m_cloud);
+	pcl::fromPCLPointCloud2(pcl_pc, *cloud_tmp);
+
+	passThroughFilter(cloud_tmp, cloud_filtered);
+	m_cloud = *cloud_filtered;
+
 	//	ROS_INFO("cloudH.getCloud()[1].x = %n",m_cloud.points.size());
 	ROS_INFO("heigh = %d, width = %d", m_cloud.height, m_cloud.width);
 
@@ -193,31 +204,27 @@ int PointCloudH::findCorrespondence(pcl::PointCloud<SpinImage>::Ptr model_descri
 	  return model_scene_corrs->size ();
 }
 
-//double PointCloudH::euclideanDistance(pcl::PointCloud<SpinImage> first, pcl::PointCloud<SpinImage> second)
-//{
-//	double total;
-//	for(int i = 0; i < first.points.size(); i++)
-//	{
-//		for(int j = 0; j < first.points[i].descriptorSize(); j++)
-//		{
-//			total += (first.points[i].histogram[j] - second.points[i].histogram[j]);
-//		}
-//	}
-//	return total;
-//
-//}
-
-double PointCloudH::euclideanDistance(SpinImage first, SpinImage second)
+double PointCloudH::euclideanNorm(SpinImage first, SpinImage second)
 {
 	double total;
 
 	for(int j = 0; j < first.descriptorSize(); j++)
 	{
-		total += (first.histogram[j] - second.histogram[j]);
+		total += fabs(first.histogram[j] - second.histogram[j]);
 	}
 
+//	std::cout << "TOT  " << total << std::endl;
 	return total;
+}
 
+void PointCloudH::passThroughFilter(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered)
+{
+	  pcl::PassThrough<pcl::PointXYZ> pass;
+	  pass.setInputCloud (cloud);
+	  pass.setFilterFieldName ("z");
+	  pass.setFilterLimits (0.3, 0.7);
+	  //pass.setFilterLimitsNegative (true);
+	  pass.filter (*cloud_filtered);
 }
 
 // Getters and Setters
